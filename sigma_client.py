@@ -13,14 +13,13 @@ class SigmaClient:
             self,
             security_parameter: int,
     ) -> (bytes, bytes):
-        k: bytes = os.urandom(security_parameter)
-        iv: bytes = os.urandom(16)
-        self.k = (k, iv)
+        key: bytes = os.urandom(security_parameter)
+        iv: bytes = os.urandom(32)
+        self.k = (key, iv)
         return self.k
 
     def srch_token(
             self,
-            k: (bytes, bytes),
             q: str,
     ):
         """ TODO: define return type"""
@@ -28,7 +27,6 @@ class SigmaClient:
 
     def add_token(
             self,
-            k: (bytes, bytes),
             ind: bytes,
             w: str,
     ):

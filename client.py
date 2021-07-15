@@ -3,7 +3,7 @@ import functools
 from Crypto.Cipher import AES
 from sigma_client import SigmaClient
 from typing import Dict, List
-from utils import Item, Op
+from utils import EncryptedUpdate, Update, Op
 
 
 class Client:
@@ -51,7 +51,7 @@ class Client:
         :returns: The search token
         :rtype: TODO
         """
-        return self.sigma.srch_token(self.k, q)
+        return self.sigma.srch_token(q)
 
     def add_token(
             self,
@@ -68,8 +68,8 @@ class Client:
         :rtype: TODO
         """
         self.t = self.t + 1
-        content = self.encrypt_tuple(self.k, self.t, Op.ADD, ind, w)
-        return self.sigma.add_token(self.k, content, w)
+        content = self.encrypt_update(self.k, self.t, Op.ADD, ind, w)
+        return self.sigma.add_token(content, w)
 
     def del_token(
             self,
@@ -86,12 +86,12 @@ class Client:
         :rtype: TODO
         """
         self.t = self.t + 1
-        content = self.encrypt_tuple(self.k, self.t, Op.DEL, ind, w)
-        return self.sigma.add_token(self.k, content, w)
+        content = self.encrypt_update(self.k, self.t, Op.DEL, ind, w)
+        return self.sigma.add_token(content, w)
 
     def dec_search(
             self,
-            r_star: List[bytes],
+            r_star: List[EncryptedUpdate],
     ) -> List[int]:
         """Decrypts encrypted results received from the server and determines which document identifiers are still
         relevant for the query. Document identifiers are relevant when there is a keyword-document pair that is
@@ -103,13 +103,13 @@ class Client:
         :rtype: List[int]
         """
         # Decrypt r_star and sort it according to timestamp t
-        decrypted_items: List[Item] = list(map(lambda e: self.decrypt_tuple(self.k, e), r_star))
-        decrypted_items.sort(key=lambda x: x[0])
+        decrypted_updates: List[Update] = list(map(lambda e: self.decrypt_update(self.k, e), r_star))
+        decrypted_updates.sort(key=lambda x: x[0])
 
         keyword_documents_dict: Dict[str, List[int]] = {}
-        for item in decrypted_items:
-            # Unpack entry (see Utils.Item)
-            (_, op, ind, w) = item
+        for update in decrypted_updates:
+            # Unpack entry (see utils.Update)
+            (_, op, ind, w) = update
 
             if w not in keyword_documents_dict:
                 keyword_documents_dict[w] = []
@@ -128,14 +128,14 @@ class Client:
         return list(set(functools.reduce(lambda cumulative_list, l:
                                          cumulative_list + l, keyword_documents_dict.values())))
 
-    def encrypt_tuple(
+    def encrypt_update(
             self,
             k: (bytes, bytes),
             t: int,
             op: Op,
             ind: int,
             w: str,
-    ) -> bytes:
+    ) -> EncryptedUpdate:
         """Encrypts (t, op, ind, w) tuples.
 
         :param k: The encryption key
@@ -149,31 +149,31 @@ class Client:
         :param w: The keyword in the tuple
         :type w: str
         :returns: The tuple in encrypted form
-        :rtype: bytes
+        :rtype: EncryptedUpdate
         """
         key = k[0]
         iv = k[1]
-        content: str = '{0} {1} {2} {3}'.format(t, op, ind, w)
-        return self.encrypt(key, iv, content)
+        update_str: str = '{0} {1} {2} {3}'.format(t, op, ind, w)
+        return self.encrypt(key, iv, update_str)
 
-    def decrypt_tuple(
+    def decrypt_update(
             self,
             k: (bytes, bytes),
-            cipher_text: bytes,
-    ) -> Item:
+            cipher_text: EncryptedUpdate,
+    ) -> Update:
         """Decrypts encryptions of (t, op, ind, w) tuples.
 
         :param k: The decryption key
         :type k: (bytes, bytes)
         :param cipher_text: The encrypted tuple
-        :type cipher_text: bytes
+        :type cipher_text: EncryptedUpdate
         :returns: The (t, op, ind, w) tuple
-        :rtype: Item
+        :rtype: Update
         """
         key = k[0]
         iv = k[1]
-        content = self.decrypt(key, iv, cipher_text)
-        (t, op, ind, w) = content.split()
+        update_str = self.decrypt(key, iv, cipher_text)
+        (t, op, ind, w) = update_str.split()
         return t, op, ind, w
 
     def encrypt(

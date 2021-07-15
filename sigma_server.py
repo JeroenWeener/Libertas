@@ -2,7 +2,7 @@ from typing import List
 
 
 class SigmaServer:
-    """ Sigma server implementation """
+    """Sigma server implementation."""
 
     def __init__(
             self,
@@ -20,6 +20,7 @@ class SigmaServer:
             srch_token,
     ) -> List[bytes]:
         """ TODO: define srch_token type"""
+        print('Search')
         return []
 
     def add(

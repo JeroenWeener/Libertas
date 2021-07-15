@@ -11,4 +11,7 @@ class Op(Enum):
 
 
 """Type declaration for (t, op, ind, w) tuples."""
-Item = Tuple[int, Op, int, str]
+Update = Tuple[int, Op, int, str]
+
+"""Type declaration for an encrypted Update."""
+EncryptedUpdate = bytes
