@@ -68,7 +68,7 @@ class Client:
         :rtype: TODO
         """
         self.t = self.t + 1
-        content = self.encrypt_update(self.k, self.t, Op.ADD, ind, w)
+        content = self._encrypt_update(self.k, self.t, Op.ADD, ind, w)
         return self.sigma.add_token(content, w)
 
     def del_token(
@@ -86,7 +86,7 @@ class Client:
         :rtype: TODO
         """
         self.t = self.t + 1
-        content = self.encrypt_update(self.k, self.t, Op.DEL, ind, w)
+        content = self._encrypt_update(self.k, self.t, Op.DEL, ind, w)
         return self.sigma.add_token(content, w)
 
     def dec_search(
@@ -103,7 +103,7 @@ class Client:
         :rtype: List[int]
         """
         # Decrypt r_star and sort it according to timestamp t
-        decrypted_updates: List[Update] = list(map(lambda e: self.decrypt_update(self.k, e), r_star))
+        decrypted_updates: List[Update] = list(map(lambda e: self._decrypt_update(self.k, e), r_star))
         decrypted_updates.sort(key=lambda x: x[0])
 
         keyword_documents_dict: Dict[str, List[int]] = {}
@@ -128,7 +128,7 @@ class Client:
         return list(set(functools.reduce(lambda cumulative_list, l:
                                          cumulative_list + l, keyword_documents_dict.values())))
 
-    def encrypt_update(
+    def _encrypt_update(
             self,
             k: (bytes, bytes),
             t: int,
@@ -154,9 +154,9 @@ class Client:
         key = k[0]
         iv = k[1]
         update_str: str = '{0} {1} {2} {3}'.format(t, op, ind, w)
-        return self.encrypt(key, iv, update_str)
+        return self._encrypt(key, iv, update_str)
 
-    def decrypt_update(
+    def _decrypt_update(
             self,
             k: (bytes, bytes),
             cipher_text: EncryptedUpdate,
@@ -172,11 +172,11 @@ class Client:
         """
         key = k[0]
         iv = k[1]
-        update_str = self.decrypt(key, iv, cipher_text)
+        update_str = self._decrypt(key, iv, cipher_text)
         (t, op, ind, w) = update_str.split()
         return t, op, ind, w
 
-    def encrypt(
+    def _encrypt(
             self,
             key: bytes,
             iv: bytes,
@@ -197,7 +197,7 @@ class Client:
         cipher = AES.new(key, AES.MODE_CBC, iv)
         return cipher.encrypt(bytes(raw, 'utf-8'))
 
-    def decrypt(
+    def _decrypt(
             self,
             key: bytes,
             iv: bytes,

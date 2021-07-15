@@ -34,5 +34,3 @@ server.build_index(security_parameter)
 # r_star = server.search(srch_token)
 # r = client.dec_search(r_star)
 # print(r)
-
-print(client.srch_token.__doc__)
