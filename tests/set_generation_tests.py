@@ -144,201 +144,6 @@ class TestSKp2(unittest.TestCase):
         })
 
 
-class TestSKp(unittest.TestCase):
-    def setUp(self):
-        self.client = SigmaClient()
-
-    def test_simple_keyword(self):
-        result = self.client._s_k_p('keyword')
-        self.assertEqual(result, {
-            '1:1:k,e',
-            '1:2:k,y',
-            '1:3:k,w',
-            '1:4:k,o',
-            '1:5:k,r',
-            '1:6:k,d',
-            '1:1:e,y',
-            '1:2:e,w',
-            '1:3:e,o',
-            '1:4:e,r',
-            '1:5:e,d',
-            '1:1:y,w',
-            '1:2:y,o',
-            '1:3:y,r',
-            '1:4:y,d',
-            '1:1:w,o',
-            '1:2:w,r',
-            '1:3:w,d',
-            '1:1:o,r',
-            '1:2:o,d',
-            '1:1:r,d',
-            '1:-:k,e',
-            '1:-:k,y',
-            '1:-:k,w',
-            '1:-:k,o',
-            '1:-:k,r',
-            '1:-:k,d',
-            '1:-:e,y',
-            '1:-:e,w',
-            '1:-:e,o',
-            '1:-:e,r',
-            '1:-:e,d',
-            '1:-:y,w',
-            '1:-:y,o',
-            '1:-:y,r',
-            '1:-:y,d',
-            '1:-:w,o',
-            '1:-:w,r',
-            '1:-:w,d',
-            '1:-:o,r',
-            '1:-:o,d',
-            '1:-:r,d',
-        })
-
-    def test_empty_keyword(self):
-        result = self.client._s_k_p('')
-        self.assertEqual(result, set())
-
-    def test_repeating_keyword(self):
-        result = self.client._s_k_p('keykey')
-        self.assertEqual(result, {
-            '1:1:k,e',
-            '1:2:k,y',
-            '1:3:k,k',
-            '1:4:k,e',
-            '1:5:k,y',
-            '1:1:e,y',
-            '1:2:e,k',
-            '1:3:e,e',
-            '1:4:e,y',
-            '1:1:y,k',
-            '1:2:y,e',
-            '1:3:y,y',
-            '2:1:k,e',
-            '2:2:k,y',
-            '2:1:e,y',
-            '1:-:k,e',
-            '1:-:k,y',
-            '1:-:k,k',
-            '2:-:k,e',
-            '2:-:k,y',
-            '1:-:e,y',
-            '1:-:e,k',
-            '1:-:e,e',
-            '2:-:e,y',
-            '1:-:y,k',
-            '1:-:y,e',
-            '1:-:y,y',
-            '3:-:k,e',
-            '3:-:k,y',
-            '3:-:e,y',
-        })
-
-
-class TestSK(unittest.TestCase):
-    def setUp(self):
-        self.client = SigmaClient()
-
-    def test_simple_keyword(self):
-        result = self.client.s_k('keyword')
-        self.assertEqual(result, {
-            '1:k',
-            '2:e',
-            '3:y',
-            '4:w',
-            '5:o',
-            '6:r',
-            '7:d',
-            '1:1:k,e',
-            '1:2:k,y',
-            '1:3:k,w',
-            '1:4:k,o',
-            '1:5:k,r',
-            '1:6:k,d',
-            '1:1:e,y',
-            '1:2:e,w',
-            '1:3:e,o',
-            '1:4:e,r',
-            '1:5:e,d',
-            '1:1:y,w',
-            '1:2:y,o',
-            '1:3:y,r',
-            '1:4:y,d',
-            '1:1:w,o',
-            '1:2:w,r',
-            '1:3:w,d',
-            '1:1:o,r',
-            '1:2:o,d',
-            '1:1:r,d',
-            '1:-:k,e',
-            '1:-:k,y',
-            '1:-:k,w',
-            '1:-:k,o',
-            '1:-:k,r',
-            '1:-:k,d',
-            '1:-:e,y',
-            '1:-:e,w',
-            '1:-:e,o',
-            '1:-:e,r',
-            '1:-:e,d',
-            '1:-:y,w',
-            '1:-:y,o',
-            '1:-:y,r',
-            '1:-:y,d',
-            '1:-:w,o',
-            '1:-:w,r',
-            '1:-:w,d',
-            '1:-:o,r',
-            '1:-:o,d',
-            '1:-:r,d',
-        })
-
-    def test_empty_keyword(self):
-        result = self.client.s_k('')
-        self.assertEqual(result, set())
-
-    def test_repeating_keyword(self):
-        result = self.client.s_k('keykey')
-        self.assertEqual(result, {
-            '1:k',
-            '2:e',
-            '3:y',
-            '4:k',
-            '5:e',
-            '6:y',
-            '1:1:k,e',
-            '1:2:k,y',
-            '1:3:k,k',
-            '1:4:k,e',
-            '1:5:k,y',
-            '1:1:e,y',
-            '1:2:e,k',
-            '1:3:e,e',
-            '1:4:e,y',
-            '1:1:y,k',
-            '1:2:y,e',
-            '1:3:y,y',
-            '2:1:k,e',
-            '2:2:k,y',
-            '2:1:e,y',
-            '1:-:k,e',
-            '1:-:k,y',
-            '1:-:k,k',
-            '2:-:k,e',
-            '2:-:k,y',
-            '1:-:e,y',
-            '1:-:e,k',
-            '1:-:e,e',
-            '2:-:e,y',
-            '1:-:y,k',
-            '1:-:y,e',
-            '1:-:y,y',
-            '3:-:k,e',
-            '3:-:k,y',
-            '3:-:e,y',
-        })
-
-
 class TestSTo(unittest.TestCase):
     def setUp(self):
         self.client = SigmaClient()
@@ -416,7 +221,128 @@ class TestSTp1(unittest.TestCase):
     def setUp(self):
         self.client = SigmaClient()
 
-    # TODO
+    def test_simple_keyword(self):
+        result = self.client._s_t_p1('keyword')
+        self.assertEqual(result, {
+            '1:1:k,e',
+            '1:2:k,y',
+            '1:3:k,w',
+            '1:4:k,o',
+            '1:5:k,r',
+            '1:6:k,d',
+            '1:1:e,y',
+            '1:2:e,w',
+            '1:3:e,o',
+            '1:4:e,r',
+            '1:5:e,d',
+            '1:1:y,w',
+            '1:2:y,o',
+            '1:3:y,r',
+            '1:4:y,d',
+            '1:1:w,o',
+            '1:2:w,r',
+            '1:3:w,d',
+            '1:1:o,r',
+            '1:2:o,d',
+            '1:1:r,d',
+        })
+
+    def test_empty_keyword(self):
+        result = self.client._s_t_p1('')
+        self.assertEqual(result, set())
+
+    def test_repeating_keyword(self):
+        result = self.client._s_t_p1('keykey')
+        self.assertEqual(result, {
+            '1:1:k,e',
+            '1:2:k,y',
+            '1:3:k,k',
+            '1:4:k,e',
+            '1:5:k,y',
+            '1:1:e,y',
+            '1:2:e,k',
+            '1:3:e,e',
+            '1:4:e,y',
+            '1:1:y,k',
+            '1:2:y,e',
+            '1:3:y,y',
+            '2:1:k,e',
+            '2:2:k,y',
+            '2:1:e,y',
+        })
+
+    def test_simple_singular_wildcard_query(self):
+        result = self.client._s_t_p1('key_ord')
+        self.assertEqual(result, {
+            '1:1:k,e',
+            '1:2:k,y',
+            '1:4:k,o',
+            '1:5:k,r',
+            '1:6:k,d',
+            '1:1:e,y',
+            '1:3:e,o',
+            '1:4:e,r',
+            '1:5:e,d',
+            '1:2:y,o',
+            '1:3:y,r',
+            '1:4:y,d',
+            '1:1:o,r',
+            '1:2:o,d',
+            '1:1:r,d',
+        })
+
+    def test_simple_plural_wildcard_query(self):
+        result = self.client._s_t_p1('key*ord')
+        self.assertEqual(result, {
+            '1:1:k,e',
+            '1:2:k,y',
+            '1:1:e,y',
+            '1:1:o,r',
+            '1:2:o,d',
+            '1:1:r,d',
+        })
+
+    def test_complex_wildcard_query(self):
+        result = self.client._s_t_p1('_ey*_r_*keyword_k*word')
+        self.assertEqual(result, {
+            '1:1:e,y',
+
+            '1:1:k,e',
+            '1:2:k,y',
+            '1:3:k,w',
+            '1:4:k,o',
+            '1:5:k,r',
+            '1:6:k,d',
+            '1:8:k,k',
+            '2:1:e,y',
+            '1:2:e,w',
+            '1:3:e,o',
+            '1:4:e,r',
+            '1:5:e,d',
+            '1:7:e,k',
+            '1:1:y,w',
+            '1:2:y,o',
+            '1:3:y,r',
+            '1:4:y,d',
+            '1:6:y,k',
+            '1:1:w,o',
+            '1:2:w,r',
+            '1:3:w,d',
+            '1:5:w,k',
+            '1:1:o,r',
+            '1:2:o,d',
+            '1:4:o,k',
+            '1:1:r,d',
+            '1:3:r,k',
+            '1:2:d,k',
+
+            '2:1:w,o',
+            '2:2:w,r',
+            '2:3:w,d',
+            '2:1:o,r',
+            '2:2:o,d',
+            '2:1:r,d',
+        })
 
 
 class TestSTp2(unittest.TestCase):

@@ -1,5 +1,5 @@
-import functools
 import os
+import hashlib, hmac
 from typing import List, Set
 
 
@@ -14,18 +14,23 @@ class SigmaClient:
     def setup(
             self,
             security_parameter: int,
+            r: int = 16,
     ) -> (bytes, bytes):
-        key: bytes = os.urandom(security_parameter)
-        iv: bytes = os.urandom(32)
-        self.k = (key, iv)
+        k_h: List[bytes] = [r * os.urandom(security_parameter)]
+        k_g: bytes = os.urandom(security_parameter)
+        self.k = (k_h, k_g)
         return self.k
 
     def srch_token(
             self,
             q: str,
     ):
-        """ TODO: define return type"""
-        print('SrchToken')
+        (k_h, k_g) = self.k
+        s_t = self.s_t(q)
+        td1s = [self._g(k, e) for e in s_t for k in k_h]
+        print(td1s)
+        # TODO test td1s and construct td2s
+        td2s = [self._g(k_g, p) for td1 in td1s for p in td1]
 
     def add_token(
             self,
@@ -34,6 +39,13 @@ class SigmaClient:
     ):
         """ TODO: define return type"""
         print('AddToken')
+
+    def _g(
+            self,
+            k: bytes,
+            e: str,
+    ) -> bytes:
+        return hmac.new(k, e, hashlib.sha256).digest()
 
     def s_k(
             self,
@@ -91,7 +103,7 @@ class SigmaClient:
         unique_pairs = list(set(pairs))
         pair_count_dict = {pair: pairs.count(pair) for pair in unique_pairs}
         return set([str(count + 1) + ':' + pair for pair in pair_count_dict.keys() for count in
-                range(pair_count_dict[pair])])
+                    range(pair_count_dict[pair])])
 
     def _s_k_p2(
             self,
@@ -109,7 +121,7 @@ class SigmaClient:
         unique_pairs = list(set(pairs))
         pair_count_dict = {pair: pairs.count(pair) for pair in unique_pairs}
         return set([str(count + 1) + ':' + pair for pair in pair_count_dict.keys() for count in
-                range(pair_count_dict[pair])])
+                    range(pair_count_dict[pair])])
 
     def s_t(
             self,
@@ -134,7 +146,7 @@ class SigmaClient:
 
         :param q: The query for which the set is to be generated. A string, possibly containing _ and * wildcards
         :type q: str
-        :return: The S_T^(o) set of the query
+        :returns: The S_T^(o) set of the query
         :rtype: Set[str]
         """
         solid_characters = q.split('*')[0]
@@ -160,24 +172,21 @@ class SigmaClient:
         """Generates the S_T^(p1) set for a query.
         Set items are of the form '{occurrence}:{distance}:{character 1},{character 2}'
 
-        TODO: investigate what happens with multiple occurrences, as they are now considered per character group pair
-        rather than for the set as a whole
-
         :param q: The query for which the set is to be generated
         :type q: str
         :returns: The S_T^(p1) set of the query
         :rtype: Set[str]
         """
-        character_groups = (q + '_').replace('_', '_^').replace('*', '*^').split('^')
-        # All pairs of neighbouring character groups
-        character_group_pairs = [character_groups[c] + character_groups[c + 1] for c in range(len(character_groups) - 1)
-                                 if len(character_groups[c]) > 1 and len(character_groups[c + 1]) > 1]
-        # Remove all * wildcards as they are not considered for the distance between characters
-        character_group_pairs = map(lambda pair: pair.replace('*', ''), character_group_pairs)
-
-        # Generate the character pairs of neighbouring character group pair
-        character_pairs = map(lambda pair: self._generate_character_pairs(pair), character_group_pairs)
-        return set(functools.reduce(lambda pair_a, pair_b: pair_a + pair_b, character_pairs))
+        consecutive_character_groups = q.split('*')
+        # Generate all pairs of characters within a consecutive character group
+        pairs = [str(c2 - c1) + ':' + group[c1] + ',' + group[c2]
+                 for group in consecutive_character_groups
+                 for c1 in range(len(group)) if group[c1] != '_'
+                 for c2 in range(c1 + 1, len(group)) if group[c2] != '_']
+        unique_pairs = list(set(pairs))
+        pair_count_dict = {pair: pairs.count(pair) for pair in unique_pairs}
+        return set([str(count + 1) + ':' + pair for pair in pair_count_dict.keys() for count in
+                    range(pair_count_dict[pair])])
 
     def _generate_character_pairs(
             self,
