@@ -34,3 +34,6 @@ server.build_index(security_parameter)
 # r_star = server.search(srch_token)
 # r = client.dec_search(r_star)
 # print(r)
+
+a = sigma_client.add_token(1, 'abcc\0')
+print(a)

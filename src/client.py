@@ -6,7 +6,7 @@ from typing import Dict, List
 from utils import EncryptedUpdate, Update, Op
 
 
-class Client:
+class Client(object):
     """Libertas client implementation."""
 
     def __init__(

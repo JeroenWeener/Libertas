@@ -1,5 +1,5 @@
 import unittest
-from sigma_client import SigmaClient
+from src.sigma_client import SigmaClient
 
 
 class TestSKo(unittest.TestCase):
@@ -8,7 +8,7 @@ class TestSKo(unittest.TestCase):
 
     def test_simple_keyword(self):
         result = self.client._s_k_o('keyword')
-        self.assertEqual(result, {
+        self.assertEqual(sorted(result), sorted([
             '1:k',
             '2:e',
             '3:y',
@@ -16,22 +16,22 @@ class TestSKo(unittest.TestCase):
             '5:o',
             '6:r',
             '7:d',
-        })
+        ]))
 
     def test_empty_keyword(self):
         result = self.client._s_k_o('')
-        self.assertEqual(result, set())
+        self.assertEqual(result, [])
 
     def test_repeating_keyword(self):
         result = self.client._s_k_o('keykey')
-        self.assertEqual(result, {
+        self.assertEqual(sorted(result), sorted([
             '1:k',
             '2:e',
             '3:y',
             '4:k',
             '5:e',
             '6:y',
-        })
+        ]))
 
 
 class TestSKp1(unittest.TestCase):
@@ -40,7 +40,7 @@ class TestSKp1(unittest.TestCase):
 
     def test_simple_keyword(self):
         result = self.client._s_k_p1('keyword')
-        self.assertEqual(result, {
+        self.assertEqual(sorted(result), sorted([
             '1:1:k,e',
             '1:2:k,y',
             '1:3:k,w',
@@ -62,15 +62,15 @@ class TestSKp1(unittest.TestCase):
             '1:1:o,r',
             '1:2:o,d',
             '1:1:r,d',
-        })
+        ]))
 
     def test_empty_keyword(self):
         result = self.client._s_k_p1('')
-        self.assertEqual(result, set())
+        self.assertEqual(result, [])
 
     def test_repeating_keyword(self):
         result = self.client._s_k_p1('keykey')
-        self.assertEqual(result, {
+        self.assertEqual(sorted(result), sorted([
             '1:1:k,e',
             '1:2:k,y',
             '1:3:k,k',
@@ -86,7 +86,7 @@ class TestSKp1(unittest.TestCase):
             '2:1:k,e',
             '2:2:k,y',
             '2:1:e,y',
-        })
+        ]))
 
 
 class TestSKp2(unittest.TestCase):
@@ -95,7 +95,7 @@ class TestSKp2(unittest.TestCase):
 
     def test_simple_keyword(self):
         result = self.client._s_k_p2('keyword')
-        self.assertEqual(result, {
+        self.assertEqual(sorted(result), sorted([
             '1:-:k,e',
             '1:-:k,y',
             '1:-:k,w',
@@ -117,15 +117,15 @@ class TestSKp2(unittest.TestCase):
             '1:-:o,r',
             '1:-:o,d',
             '1:-:r,d',
-        })
+        ]))
 
     def test_empty_keyword(self):
         result = self.client._s_k_p2('')
-        self.assertEqual(result, set())
+        self.assertEqual(result, [])
 
     def test_repeating_keyword(self):
         result = self.client._s_k_p2('keykey')
-        self.assertEqual(result, {
+        self.assertEqual(sorted(result), sorted([
             '1:-:k,e',
             '1:-:k,y',
             '1:-:k,k',
@@ -141,7 +141,7 @@ class TestSKp2(unittest.TestCase):
             '3:-:k,e',
             '3:-:k,y',
             '3:-:e,y',
-        })
+        ]))
 
 
 class TestSTo(unittest.TestCase):
@@ -150,7 +150,7 @@ class TestSTo(unittest.TestCase):
 
     def test_simple_query(self):
         result = self.client._s_t_o('keyword')
-        self.assertEqual(result, {
+        self.assertEqual(sorted(result), sorted([
             '1:k',
             '2:e',
             '3:y',
@@ -158,62 +158,62 @@ class TestSTo(unittest.TestCase):
             '5:o',
             '6:r',
             '7:d',
-        })
+        ]))
 
     def test_empty_query(self):
         result = self.client._s_t_o('')
-        self.assertEqual(result, set())
+        self.assertEqual(result, [])
 
     def test_repeating_query(self):
         result = self.client._s_t_o('keykey')
-        self.assertEqual(result, {
+        self.assertEqual(sorted(result), sorted([
             '1:k',
             '2:e',
             '3:y',
             '4:k',
             '5:e',
             '6:y',
-        })
+        ]))
     
     def test_simple_singular_wildcard_query(self):
         result = self.client._s_t_o('key_ord')
-        self.assertEqual(result, {
+        self.assertEqual(sorted(result), sorted([
             '1:k',
             '2:e',
             '3:y',
             '5:o',
             '6:r',
             '7:d',
-        })
+        ]))
 
     def test_simple_plural_wildcard_query(self):
         result = self.client._s_t_o('key*word')
-        self.assertEqual(result, {
+        self.assertEqual(sorted(result), sorted([
             '1:k',
             '2:e',
             '3:y',
-        })
+        ]))
 
     def test_query_starting_with_plural_wildcard(self):
         result = self.client._s_t_o('*keyword')
-        self.assertEqual(result, set())
+        self.assertEqual(result, [])
 
     def test_singular_wildcard_only_query(self):
         result = self.client._s_t_o('_')
-        self.assertEqual(result, set())
+        self.assertEqual(result, [])
 
     def test_plural_wildcard_only_query(self):
         result = self.client._s_t_o('*')
-        self.assertEqual(result, set())
+        self.assertEqual(result, [])
 
     def test_wildcard_rich_query(self):
         result = self.client._s_t_o('_ke_w__d**k_yw*rd')
-        self.assertEqual(result, {
+        self.assertEqual(sorted(result), sorted([
             '2:k',
             '3:e',
             '5:w',
             '8:d',
-        })
+        ]))
 
 
 class TestSTp1(unittest.TestCase):
@@ -223,7 +223,7 @@ class TestSTp1(unittest.TestCase):
 
     def test_simple_keyword(self):
         result = self.client._s_t_p1('keyword')
-        self.assertEqual(result, {
+        self.assertEqual(sorted(result), sorted([
             '1:1:k,e',
             '1:2:k,y',
             '1:3:k,w',
@@ -245,15 +245,15 @@ class TestSTp1(unittest.TestCase):
             '1:1:o,r',
             '1:2:o,d',
             '1:1:r,d',
-        })
+        ]))
 
     def test_empty_keyword(self):
         result = self.client._s_t_p1('')
-        self.assertEqual(result, set())
+        self.assertEqual(result, [])
 
     def test_repeating_keyword(self):
         result = self.client._s_t_p1('keykey')
-        self.assertEqual(result, {
+        self.assertEqual(sorted(result), sorted([
             '1:1:k,e',
             '1:2:k,y',
             '1:3:k,k',
@@ -269,11 +269,11 @@ class TestSTp1(unittest.TestCase):
             '2:1:k,e',
             '2:2:k,y',
             '2:1:e,y',
-        })
+        ]))
 
     def test_simple_singular_wildcard_query(self):
         result = self.client._s_t_p1('key_ord')
-        self.assertEqual(result, {
+        self.assertEqual(sorted(result), sorted([
             '1:1:k,e',
             '1:2:k,y',
             '1:4:k,o',
@@ -289,22 +289,22 @@ class TestSTp1(unittest.TestCase):
             '1:1:o,r',
             '1:2:o,d',
             '1:1:r,d',
-        })
+        ]))
 
     def test_simple_plural_wildcard_query(self):
         result = self.client._s_t_p1('key*ord')
-        self.assertEqual(result, {
+        self.assertEqual(sorted(result), sorted([
             '1:1:k,e',
             '1:2:k,y',
             '1:1:e,y',
             '1:1:o,r',
             '1:2:o,d',
             '1:1:r,d',
-        })
+        ]))
 
     def test_complex_wildcard_query(self):
         result = self.client._s_t_p1('_ey*_r_*keyword_k*word')
-        self.assertEqual(result, {
+        self.assertEqual(sorted(result), sorted([
             '1:1:e,y',
 
             '1:1:k,e',
@@ -342,7 +342,7 @@ class TestSTp1(unittest.TestCase):
             '2:1:o,r',
             '2:2:o,d',
             '2:1:r,d',
-        })
+        ]))
 
 
 class TestSTp2(unittest.TestCase):
@@ -351,7 +351,7 @@ class TestSTp2(unittest.TestCase):
 
     def test_simple_keyword(self):
         result = self.client._s_t_p2('keyword')
-        self.assertEqual(result, {
+        self.assertEqual(sorted(result), sorted([
             '1:-:k,e',
             '1:-:k,y',
             '1:-:k,w',
@@ -373,15 +373,15 @@ class TestSTp2(unittest.TestCase):
             '1:-:o,r',
             '1:-:o,d',
             '1:-:r,d',
-        })
+        ]))
 
     def test_empty_keyword(self):
         result = self.client._s_t_p2('')
-        self.assertEqual(result, set())
+        self.assertEqual(result, [])
 
     def test_repeating_keyword(self):
         result = self.client._s_t_p2('keykey')
-        self.assertEqual(result, {
+        self.assertEqual(sorted(result), sorted([
             '1:-:k,e',
             '1:-:k,y',
             '1:-:k,k',
@@ -397,11 +397,11 @@ class TestSTp2(unittest.TestCase):
             '3:-:k,e',
             '3:-:k,y',
             '3:-:e,y',
-        })
+        ]))
 
     def test_simple_singular_wildcard_query(self):
         result = self.client._s_t_p2('key_ord')
-        self.assertEqual(result, {
+        self.assertEqual(sorted(result), sorted([
             '1:-:k,e',
             '1:-:k,y',
             '1:-:k,o',
@@ -417,11 +417,11 @@ class TestSTp2(unittest.TestCase):
             '1:-:o,r',
             '1:-:o,d',
             '1:-:r,d',
-        })
+        ]))
 
     def test_simple_plural_wildcard_query(self):
         result = self.client._s_t_p2('key*ord')
-        self.assertEqual(result, {
+        self.assertEqual(sorted(result), sorted([
             '1:-:k,e',
             '1:-:k,y',
             '1:-:k,o',
@@ -437,11 +437,11 @@ class TestSTp2(unittest.TestCase):
             '1:-:o,r',
             '1:-:o,d',
             '1:-:r,d',
-        })
+        ]))
 
     def test_complex_wildcard_query(self):
         result = self.client._s_t_p2('_k**y*_ordk_ywor_*dkeywo__rd')
-        self.assertEqual(result, {
+        self.assertEqual(sorted(result), sorted([
             '1:-:k,y',
             '1:-:k,o',
             '1:-:k,r',
@@ -611,7 +611,7 @@ class TestSTp2(unittest.TestCase):
             '6:-:o,d',
 
             '6:-:r,d',
-        })
+        ]))
 
 
 if __name__ == '__main__':

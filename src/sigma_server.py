@@ -1,7 +1,7 @@
 from typing import List
 
 
-class SigmaServer:
+class SigmaServer(object):
     """Sigma server implementation."""
 
     def __init__(

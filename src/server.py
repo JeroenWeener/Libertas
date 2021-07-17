@@ -3,7 +3,7 @@ from typing import List
 from utils import EncryptedUpdate
 
 
-class Server:
+class Server(object):
     """Libertas server implementation."""
 
     def __init__(
