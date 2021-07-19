@@ -1,10 +1,13 @@
+# Python imports
 import unittest
-from src.sigma_client import SigmaClient
+
+# Project imports
+from src.zhao_nishide.client import ZNClient
 
 
 class TestSKo(unittest.TestCase):
     def setUp(self):
-        self.client = SigmaClient()
+        self.client = ZNClient()
 
     def test_simple_keyword(self):
         result = self.client._s_k_o('keyword')
@@ -36,7 +39,7 @@ class TestSKo(unittest.TestCase):
 
 class TestSKp1(unittest.TestCase):
     def setUp(self):
-        self.client = SigmaClient()
+        self.client = ZNClient()
 
     def test_simple_keyword(self):
         result = self.client._s_k_p1('keyword')
@@ -91,7 +94,7 @@ class TestSKp1(unittest.TestCase):
 
 class TestSKp2(unittest.TestCase):
     def setUp(self):
-        self.client = SigmaClient()
+        self.client = ZNClient()
 
     def test_simple_keyword(self):
         result = self.client._s_k_p2('keyword')
@@ -146,7 +149,7 @@ class TestSKp2(unittest.TestCase):
 
 class TestSTo(unittest.TestCase):
     def setUp(self):
-        self.client = SigmaClient()
+        self.client = ZNClient()
 
     def test_simple_query(self):
         result = self.client._s_t_o('keyword')
@@ -219,7 +222,7 @@ class TestSTo(unittest.TestCase):
 class TestSTp1(unittest.TestCase):
 
     def setUp(self):
-        self.client = SigmaClient()
+        self.client = ZNClient()
 
     def test_simple_keyword(self):
         result = self.client._s_t_p1('keyword')
@@ -347,7 +350,7 @@ class TestSTp1(unittest.TestCase):
 
 class TestSTp2(unittest.TestCase):
     def setUp(self):
-        self.client = SigmaClient()
+        self.client = ZNClient()
 
     def test_simple_keyword(self):
         result = self.client._s_t_p2('keyword')

@@ -1,6 +1,9 @@
-from sigma_server import SigmaServer
+# Python imports
 from typing import List
-from utils import EncryptedUpdate
+
+# Project imports
+from src.utils import EncryptedUpdate
+from src.zhao_nishide.server import ZNServer
 
 
 class Server(object):
@@ -8,16 +11,16 @@ class Server(object):
 
     def __init__(
             self,
-            sigma: SigmaServer,
+            sigma: ZNServer,
     ) -> None:
         """Initializes a Libertas server, setting the underlying server scheme that is used.
 
         :param sigma: The underlying SSE scheme used by this Libertas instance
-        :type sigma: SigmaServer
+        :type sigma: ZNServer
         :returns: None
         :rtype: None
         """
-        self.sigma: SigmaServer = sigma
+        self.sigma: ZNServer = sigma
         self.index = None
 
     def build_index(
@@ -31,7 +34,7 @@ class Server(object):
         :returns: None
         :rtype: None
         """
-        self.sigma.build_index(security_parameter)
+        self.sigma.build_index()
 
     def search(
             self,

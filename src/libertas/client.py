@@ -1,9 +1,13 @@
+# Python imports
 import functools
-
-from Crypto.Cipher import AES
-from sigma_client import SigmaClient
 from typing import Dict, List
-from utils import EncryptedUpdate, Update, Op
+
+# Third-party imports
+from Crypto.Cipher import AES
+
+# Project imports
+from src.utils import EncryptedUpdate, Update, Op
+from src.zhao_nishide.client import ZNClient
 
 
 class Client(object):
@@ -11,16 +15,16 @@ class Client(object):
 
     def __init__(
             self,
-            sigma: SigmaClient,
+            sigma: ZNClient,
     ) -> None:
         """Initializes a Libertas client, setting the underlying client scheme that is used.
 
         :param sigma: The underlying SSE scheme used by this Libertas instance
-        :type sigma: SigmaClient
+        :type sigma: ZNClient
         :returns: None
         :rtype: None
         """
-        self.sigma: SigmaClient = sigma
+        self.sigma: ZNClient = sigma
         self.k: (bytes, bytes) = None
         self.t: int = -1
 
@@ -46,7 +50,7 @@ class Client(object):
     ):
         """Creates a search token for a query, to be send to the server.
 
-        :param q: The query: a string of characters, possibly containing wildcards.
+        :param q: The query, a string of characters, possibly containing wildcards
         :type q: str
         :returns: The search token
         :rtype: TODO
