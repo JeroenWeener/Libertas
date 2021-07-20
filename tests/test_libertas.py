@@ -38,6 +38,23 @@ class TestEncryptUpdates(unittest.TestCase):
         self.assertEqual(update, result)
 
 
+class TestUniquenessOfTokens(unittest.TestCase):
+    def setUp(self):
+        zn_client = ZNClient()
+        self.client = LibertasClient(zn_client)
+        self.client.setup((256, 2048))
+
+    def test_add_token_uniqueness(self):
+        add_token = self.client.add_token(1, 'test')
+        add_token2 = self.client.add_token(1, 'test')
+        self.assertNotEqual(add_token, add_token2)
+
+    def test_delete_token_uniqueness(self):
+        del_token = self.client.del_token(1, 'test')
+        del_token2 = self.client.del_token(1, 'test')
+        self.assertNotEqual(del_token, del_token2)
+
+
 class TestAdd(unittest.TestCase):
     def setUp(self):
         zn_client = ZNClient()
@@ -101,6 +118,18 @@ class TestDelete(unittest.TestCase):
             decrypted_result = self.server.search(srch_token)
             result = self.client.dec_search(decrypted_result)
             self.assertEqual([], result)
+
+    def test_re_adding_after_delete(self):
+        add_token = self.client.add_token(1, 'test')
+        self.server.add(add_token)
+        del_token = self.client.del_token(1, 'test')
+        self.server.delete(del_token)
+        re_add_token = self.client.add_token(1, 'test')
+        self.server.add(re_add_token)
+        srch_token = self.client.srch_token('test')
+        encrypted_result = self.server.search(srch_token)
+        result = self.client.dec_search(encrypted_result)
+        self.assertEqual([1], result)
 
 
 class TestSearch(unittest.TestCase):
