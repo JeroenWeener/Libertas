@@ -15,15 +15,15 @@ class TestSetup(unittest.TestCase):
         client.setup(security_parameter)
         (k_h, k_g) = client.k
 
-        self.assertEqual(len(k_h), BF_HASH_FUNCTIONS)
+        self.assertEqual(BF_HASH_FUNCTIONS, len(k_h))
         for k in k_h:
-            self.assertEqual(len(k), security_parameter // 8)
-        self.assertEqual(len(k_g), security_parameter // 8)
+            self.assertEqual(security_parameter // 8, len(k))
+        self.assertEqual(security_parameter // 8, len(k_g))
 
     def test_build_index(self):
         server = ZNServer()
         server.build_index()
-        self.assertEqual(server.index, [])
+        self.assertEqual([], server.index)
 
 
 class TestAdd(unittest.TestCase):
@@ -38,7 +38,7 @@ class TestAdd(unittest.TestCase):
         self.server.add(add_token)
         srch_token = self.client.srch_token('abc')
         result = self.server.search(srch_token)
-        self.assertEqual(result, [bytes(1)])
+        self.assertEqual([bytes(1)], result)
 
     def test_add_multiple_keywords(self):
         keywords = ['abc', 'abcd', 'abcde', 'abcdef', 'abcdefg', 'abcdefgh', 'abcdefghi']
@@ -50,7 +50,7 @@ class TestAdd(unittest.TestCase):
         for keyword in keywords:
             srch_token = self.client.srch_token(keyword)
             result = self.server.search(srch_token)
-            self.assertEqual(result, [bytes(1)])
+            self.assertEqual([bytes(1)], result)
 
 
 class TestSearch(unittest.TestCase):
@@ -66,7 +66,7 @@ class TestSearch(unittest.TestCase):
         for query in queries:
             srch_token = self.client.srch_token(query)
             result = self.server.search(srch_token)
-            self.assertEqual(result, [])
+            self.assertEqual([], result)
 
     def test_empty_query(self):
         keywords = ['abc', 'abcd', 'abcde', 'abcdef', 'abcdefg', 'abcdefgh', 'abcdefghi', '']
@@ -77,7 +77,7 @@ class TestSearch(unittest.TestCase):
 
         srch_token = self.client.srch_token('')
         result = self.server.search(srch_token)
-        self.assertEqual(result, [7])
+        self.assertTrue({7}.issubset(set(result)))
 
     def test_simple_search(self):
         keywords = ['abc', 'abcd', 'abcde', 'abcdef', 'abcdefg', 'abcdefgh', 'abcdefghi']
@@ -89,7 +89,7 @@ class TestSearch(unittest.TestCase):
         for ind, w in zip(range(len(keywords)), keywords):
             srch_token = self.client.srch_token(w)
             result = self.server.search(srch_token)
-            self.assertEqual(result, [ind])
+            self.assertTrue({ind}.issubset(set(result)))
 
     def test_search_multiple_matches(self):
         number_of_documents = 100
@@ -99,7 +99,7 @@ class TestSearch(unittest.TestCase):
             self.server.add(add_token)
         srch_token = self.client.srch_token('abc')
         result = self.server.search(srch_token)
-        self.assertEqual(result, list(map(lambda n: bytes(n), range(number_of_documents))))
+        self.assertTrue(set(map(lambda n: bytes(n), range(number_of_documents))).issubset(set(result)))
 
     def test_singular_wildcard(self):
         keywords = ['cat', 'cut', 'sit', 'cet', 'dot', 'cyt', 'sat']
@@ -120,7 +120,7 @@ class TestSearch(unittest.TestCase):
         for q, r in zip(queries, results):
             srch_token = self.client.srch_token(q)
             result = self.server.search(srch_token)
-            self.assertEqual(result, r)
+            self.assertTrue(set(r).issubset(result))
 
     def test_plural_wildcard(self):
         keywords = ['', 'test', 'testcase', 'testcasesimulator', 'testcasesimulatorproof']
@@ -143,7 +143,7 @@ class TestSearch(unittest.TestCase):
         for q, r in zip(queries, results):
             srch_token = self.client.srch_token(q)
             result = self.server.search(srch_token)
-            self.assertEqual(result, r)
+            self.assertTrue(set(r).issubset(result))
 
     def test_date_searches(self):
         keywords = [
@@ -175,7 +175,7 @@ class TestSearch(unittest.TestCase):
         for q, r in zip(queries, results):
             srch_token = self.client.srch_token(q)
             result = self.server.search(srch_token)
-            self.assertEqual(result, r)
+            self.assertTrue(set(r).issubset(set(result)))
 
     def test_complex_searches(self):
         keywords = ['abc', 'aba', 'bac', 'cab', 'abcabcabc']
@@ -199,7 +199,7 @@ class TestSearch(unittest.TestCase):
         for q, r in zip(queries, results):
             srch_token = self.client.srch_token(q)
             result = self.server.search(srch_token)
-            self.assertEqual(result, r)
+            self.assertTrue(set(r).issubset(result))
 
 
 if __name__ == '__main__':

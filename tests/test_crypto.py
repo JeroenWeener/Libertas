@@ -19,7 +19,7 @@ class TestEncrypt(unittest.TestCase):
             for plain_text in plain_texts:
                 cipher_text = encrypt(key, plain_text)
                 result = decrypt(key, cipher_text)
-                self.assertEqual(result, plain_text)
+                self.assertEqual(plain_text, result)
 
 
 if __name__ == '__main__':
