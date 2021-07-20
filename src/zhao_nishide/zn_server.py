@@ -66,7 +66,8 @@ class ZNServer(SigmaServer):
                 if bit_array[pos] ^ mask_bit == 0:
                     break
             else:
-                results.append(ind)
+                if ind not in results:
+                    results.append(ind)
         return results
 
     def add(

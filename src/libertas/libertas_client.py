@@ -1,11 +1,9 @@
 # Python imports
-import functools
+import os
 from typing import Dict, List
 
-# Third-party imports
-from Crypto.Cipher import AES
-
 # Project imports
+from src.crypto import decrypt, encrypt
 from src.sigma_interface.sigma_client import SigmaClient
 from src.utils import EncryptedUpdate, Update, Op
 from src.zhao_nishide.zn_client import ZNClient
@@ -30,23 +28,23 @@ class LibertasClient(object):
         :rtype: None
         """
         self.sigma: SigmaClient = sigma
-        self.k: (bytes, bytes) = None
-        self.t: int = -1
+        self.k = None
+        self.t = None
 
     def setup(
             self,
-            security_parameter: int,
+            security_parameter: int = 256,
     ) -> None:
         """Sets up the Libertas client, generating a key used for future operations and initializing the scheme's
         timestamp counter.
 
-        :param security_parameter: The required security strength
+        :param security_parameter: The required security strength (bits)
         :type security_parameter: int
         :returns: None
         :rtype: None
         """
-        # TODO set k (encryption, iv)
-        self.k = -1
+        self.sigma.setup(security_parameter)
+        self.k = os.urandom(security_parameter // 8)
         self.t = 0
 
     def srch_token(
@@ -77,7 +75,7 @@ class LibertasClient(object):
         :rtype: any
         """
         self.t = self.t + 1
-        content = self._encrypt_update(self.k, self.t, Op.ADD, ind, w)
+        content = self._encrypt_update(self.t, Op.ADD, ind, w)
         return self.sigma.add_token(content, w)
 
     def del_token(
@@ -95,7 +93,7 @@ class LibertasClient(object):
         :rtype: any
         """
         self.t = self.t + 1
-        content = self._encrypt_update(self.k, self.t, Op.DEL, ind, w)
+        content = self._encrypt_update(self.t, Op.DEL, ind, w)
         return self.sigma.add_token(content, w)
 
     def dec_search(
@@ -112,13 +110,13 @@ class LibertasClient(object):
         :rtype: List[int]
         """
         # Decrypt r_star and sort it according to timestamp t
-        decrypted_updates: List[Update] = list(map(lambda e: self._decrypt_update(self.k, e), r_star))
+        decrypted_updates: List[Update] = list(map(lambda e: self._decrypt_update(e), r_star))
         decrypted_updates.sort(key=lambda x: x[0])
 
         keyword_documents_dict: Dict[str, List[int]] = {}
         for update in decrypted_updates:
             # Unpack entry (see utils.Update)
-            (_, op, ind, w) = update
+            (t, op, ind, w) = update
 
             if w not in keyword_documents_dict:
                 keyword_documents_dict[w] = []
@@ -134,12 +132,11 @@ class LibertasClient(object):
                 keyword_documents_dict[w] = documents_list
 
         # Combine the ind values for all keywords and remove duplicates
-        return list(set(functools.reduce(lambda cumulative_list, l:
-                                         cumulative_list + l, keyword_documents_dict.values())))
+        results = [ind for sub_results in keyword_documents_dict.values() for ind in sub_results]
+        return list(set(results))
 
     def _encrypt_update(
             self,
-            k: (bytes, bytes),
             t: int,
             op: Op,
             ind: int,
@@ -147,8 +144,6 @@ class LibertasClient(object):
     ) -> EncryptedUpdate:
         """Encrypts (t, op, ind, w) tuples.
 
-        :param k: The encryption key
-        :type k: (bytes, bytes)
         :param t: The timestamp in the tuple
         :type t: int
         :param op: The operation (add or delete) in the tuple
@@ -160,97 +155,20 @@ class LibertasClient(object):
         :returns: The tuple in encrypted form
         :rtype: EncryptedUpdate
         """
-        key = k[0]
-        iv = k[1]
-        update_str: str = '{0} {1} {2} {3}'.format(t, op, ind, w)
-        return self._encrypt(key, iv, update_str)
+        update_str: str = '{0},{1},{2},{3}'.format(t, op.value, ind, w)
+        return encrypt(self.k, update_str)
 
     def _decrypt_update(
             self,
-            k: (bytes, bytes),
             cipher_text: EncryptedUpdate,
     ) -> Update:
         """Decrypts encryptions of (t, op, ind, w) tuples.
 
-        :param k: The decryption key
-        :type k: (bytes, bytes)
         :param cipher_text: The encrypted tuple
         :type cipher_text: EncryptedUpdate
         :returns: The (t, op, ind, w) tuple
         :rtype: Update
         """
-        key = k[0]
-        iv = k[1]
-        update_str = self._decrypt(key, iv, cipher_text)
-        (t, op, ind, w) = update_str.split()
-        return t, op, ind, w
-
-    def _encrypt(
-            self,
-            key: bytes,
-            iv: bytes,
-            raw: str,
-    ) -> bytes:
-        """Encrypts data using AES in CBC mode.
-
-        :param key: The encryption key
-        :type key: bytes
-        :param iv: The initialization vector
-        :type iv: bytes
-        :param raw: The data to encrypt
-        :type raw: str
-        :returns: The encrypted form of the raw data
-        :rtype: bytes
-        """
-        raw = self._pad(raw)
-        cipher = AES.new(key, AES.MODE_CBC, iv)
-        return cipher.encrypt(bytes(raw, 'utf-8'))
-
-    def _decrypt(
-            self,
-            key: bytes,
-            iv: bytes,
-            cipher_text: bytes,
-    ) -> str:
-        """Decrypts cipher text using AES in CBC mode.
-
-        :param key: The decryption key
-        :type key: bytes
-        :param iv: The initialization vector
-        :type iv: bytes
-        :param cipher_text: The cipher text to decrypt
-        :type cipher_text: bytes
-        :returns: The decryption of the cipher text
-        :rtype: str
-        """
-        cipher = AES.new(key, AES.MODE_CBC, iv)
-        return self._unpad(cipher.decrypt(cipher_text))
-
-    def _pad(
-            self,
-            s: str,
-            bs: int = 32,
-    ) -> str:
-        """Pads a string so its length is a multiple of a specified block size.
-
-        :param s: The string that is to be padded
-        :type s: str
-        :param bs: The block size
-        :type bs: int
-        :returns: The initial string, padded to have a length that is a multiple of the specified block size
-        :rtype: str
-        """
-        return s + (bs - len(s) % bs) * chr(bs - len(s) % bs)
-
-    def _unpad(
-            self,
-            s: bytes,
-    ) -> str:
-        """Unpads a string that was previously padded by _pad().
-
-        :param s: The string to unpad
-        :type s: TODO
-        :returns: The unpadded string
-        :rtype: str
-        """
-        return str(s[:-ord(s[len(s) - 1:])])
+        update_str = decrypt(self.k, cipher_text)
+        (t, op, ind, w) = update_str.split(',')
+        return int(t), Op(int(op)), int(ind), w

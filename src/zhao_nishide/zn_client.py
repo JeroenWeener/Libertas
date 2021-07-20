@@ -42,7 +42,7 @@ class ZNClient(SigmaClient):
     ) -> (List[bytes], bytes):
         """Sets up the Z&N client, generating keys k_h and k_g.
 
-        :param security_parameter: The required security strength
+        :param security_parameter: The required security strength (bits)
         :type security_parameter: int
         :returns: None
         :rtype: None
