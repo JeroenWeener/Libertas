@@ -33,18 +33,19 @@ class LibertasClient(object):
 
     def setup(
             self,
-            security_parameter: int = 256,
+            security_parameter: (int, int) = (256, 2048),
     ) -> None:
         """Sets up the Libertas client, generating a key used for future operations and initializing the scheme's
         timestamp counter.
 
-        :param security_parameter: The required security strength (bits)
-        :type security_parameter: int
+        :param security_parameter: The required security strength for the AES encryption of Libertas and the security
+         strength for the underlying scheme (bits)
+        :type security_parameter: (int, int)
         :returns: None
         :rtype: None
         """
-        self.sigma.setup(security_parameter)
-        self.k = os.urandom(security_parameter // 8)
+        self.sigma.setup(security_parameter[1])
+        self.k = os.urandom(security_parameter[0] // 8)
         self.t = 0
 
     def srch_token(
