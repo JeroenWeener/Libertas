@@ -43,8 +43,8 @@ class ZNClient(object):
         :returns: The generated keys
         :rtype: (List[bytes], bytes)
         """
-        k_h: List[bytes] = [os.urandom(security_parameter) for _ in range(BF_HASH_FUNCTIONS)]
-        k_g: bytes = os.urandom(security_parameter)
+        k_h: List[bytes] = [os.urandom(security_parameter//8) for _ in range(BF_HASH_FUNCTIONS)]
+        k_g: bytes = os.urandom(security_parameter//8)
         self.k: (bytes, bytes) = (k_h, k_g)
         return self.k
 
@@ -62,7 +62,7 @@ class ZNClient(object):
         :rtype: (List[int], List[bytes])
         """
         (k_h, k_g) = self.k
-        s_t = self._s_t(q)
+        s_t = self._s_t(q + '\0')
         td1s: List[int] = [hash_string_to_int(k, e) % BF_ARRAY_SIZE for e in s_t for k in k_h]
         td2s: List[bytes] = [hash_int(k_g, pos) for pos in td1s]
         return td1s, td2s
@@ -81,7 +81,7 @@ class ZNClient(object):
         :returns: An add token, a tuple consisting of a document identifier, Bloom filter and its ID
         :rtype: (int, bitarray, bytes)
         """
-        s_k = self._s_k(w)
+        s_k = self._s_k(w + '\0')
         (k_h, k_g) = self.k
         b_id = hash_string(k_g, str(ind) + w)
         bloom_filter = bitarray(BF_ARRAY_SIZE)
