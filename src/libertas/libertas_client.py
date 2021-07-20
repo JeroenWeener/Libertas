@@ -6,16 +6,21 @@ from typing import Dict, List
 from Crypto.Cipher import AES
 
 # Project imports
+from src.sigma_interface.sigma_client import SigmaClient
 from src.utils import EncryptedUpdate, Update, Op
-from src.zhao_nishide.client import ZNClient
+from src.zhao_nishide.zn_client import ZNClient
 
 
-class Client(object):
-    """Libertas client implementation."""
+class LibertasClient(object):
+    """Libertas client implementation.
+
+    Libertas uses a wildcard supporting SSE scheme internally. In addition to the security guarantees and functionality
+    provided by the underlying scheme, Libertas provides Update Pattern Revealing Backward Privacy.
+    """
 
     def __init__(
             self,
-            sigma: ZNClient,
+            sigma: SigmaClient,
     ) -> None:
         """Initializes a Libertas client, setting the underlying client scheme that is used.
 
@@ -24,36 +29,36 @@ class Client(object):
         :returns: None
         :rtype: None
         """
-        self.sigma: ZNClient = sigma
+        self.sigma: SigmaClient = sigma
         self.k: (bytes, bytes) = None
         self.t: int = -1
 
     def setup(
             self,
             security_parameter: int,
-    ) -> (bytes, bytes):
+    ) -> None:
         """Sets up the Libertas client, generating a key used for future operations and initializing the scheme's
         timestamp counter.
 
         :param security_parameter: The required security strength
         :type security_parameter: int
-        :returns: The scheme's key
-        :rtype: (bytes, bytes)
+        :returns: None
+        :rtype: None
         """
-        self.k = self.sigma.setup(security_parameter)
+        # TODO set k (encryption, iv)
+        self.k = -1
         self.t = 0
-        return self.k
 
     def srch_token(
             self,
             q: str,
-    ):
+    ) -> any:
         """Creates a search token for a query, to be send to the server.
 
         :param q: The query, a string of characters, possibly containing wildcards
         :type q: str
         :returns: The search token
-        :rtype: TODO
+        :rtype: any
         """
         return self.sigma.srch_token(q)
 
@@ -61,7 +66,7 @@ class Client(object):
             self,
             ind: int,
             w: str,
-    ):
+    ) -> any:
         """Creates an add token for a document-keyword pair, to be send to the server.
 
         :param ind: The document identifier of the document in the document-keyword pair that is to be added
@@ -69,7 +74,7 @@ class Client(object):
         :param w: The keyword in the document-keyword pair that is to be added
         :type w: str
         :returns: the add token
-        :rtype: TODO
+        :rtype: any
         """
         self.t = self.t + 1
         content = self._encrypt_update(self.k, self.t, Op.ADD, ind, w)
@@ -79,7 +84,7 @@ class Client(object):
             self,
             ind: int,
             w: str,
-    ):
+    ) -> any:
         """Creates a delete token for a document-keyword pair, to be send to the server.
 
         :param ind: The document identifier of the document in the document-keyword pair that is to be deleted
@@ -87,7 +92,7 @@ class Client(object):
         :param w: The keyword in the document-keyword pair that is to be deleted
         :type w: str
         :returns: the delete token
-        :rtype: TODO
+        :rtype: any
         """
         self.t = self.t + 1
         content = self._encrypt_update(self.k, self.t, Op.DEL, ind, w)

@@ -3,11 +3,15 @@ from typing import List
 
 # Project imports
 from src.utils import EncryptedUpdate
-from src.zhao_nishide.server import ZNServer
+from src.zhao_nishide.zn_server import ZNServer
 
 
-class Server(object):
-    """Libertas server implementation."""
+class LibertasServer(object):
+    """Libertas server implementation.
+
+    Libertas uses a wildcard supporting SSE scheme internally. In addition to the security guarantees and functionality
+    provided by the underlying scheme, Libertas provides Update Pattern Revealing Backward Privacy.
+    """
 
     def __init__(
             self,

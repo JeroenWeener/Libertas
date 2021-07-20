@@ -2,7 +2,7 @@
 import unittest
 
 # Project imports
-from src.zhao_nishide.client import ZNClient
+from src.zhao_nishide.zn_client import ZNClient
 
 
 class TestSKo(unittest.TestCase):

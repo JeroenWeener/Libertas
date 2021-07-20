@@ -6,9 +6,10 @@ from bitarray import bitarray
 
 # Project imports
 from src.crypto import hash_bytes
+from src.sigma_interface.sigma_server import SigmaServer
 
 
-class ZNServer(object):
+class ZNServer(SigmaServer):
     """Zhao and Nishide server implementation.
 
     Based on: Fangming Zhao and Takashi Nishide. Searchable symmetric encryption supporting queries with
@@ -18,6 +19,8 @@ class ZNServer(object):
     This implementation uses Bloom filters for the index. Search queries are allowed to contain both _ and * wildcard
     characters. A _ character is used to indicate the presence of any single character, while the * character marks the
     presence of 0 or more characters.
+
+    Delete operations are not implemented as they are not required for Libertas.
     """
 
     def __init__(
@@ -28,6 +31,7 @@ class ZNServer(object):
         :returns: None
         :rtype: None
         """
+        super().__init__()
         self.index = None
 
     def build_index(
@@ -67,13 +71,13 @@ class ZNServer(object):
 
     def add(
             self,
-            add_token: (int, bitarray, bytes),
+            add_token: (bytes, bitarray, bytes),
     ) -> None:
         """Adds a document-keyword pair, represented by an add token, to the index.
         An add token consists of a document identifier, a Bloom filter and its ID.
 
         :param add_token: An add token representing a document-keyword pair
-        :type add_token: (int, bitarray, bytes)
+        :type add_token: (bytes, bitarray, bytes)
         :returns: None
         :rtype: None
         """

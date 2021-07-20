@@ -1,8 +1,8 @@
 # Project imports
-from src.libertas.client import Client
-from src.libertas.server import Server
-from src.zhao_nishide.client import ZNClient
-from src.zhao_nishide.server import ZNServer
+from src.libertas.libertas_client import Client
+from src.libertas.libertas_server import Server
+from src.zhao_nishide.zn_client import ZNClient
+from src.zhao_nishide.zn_server import ZNServer
 
 """Libertas
 

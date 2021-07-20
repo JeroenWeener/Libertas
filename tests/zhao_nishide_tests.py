@@ -3,8 +3,8 @@ import unittest
 
 # Project imports
 from src.zhao_nishide.bloom_filter_parameters import BF_HASH_FUNCTIONS
-from src.zhao_nishide.client import ZNClient
-from src.zhao_nishide.server import ZNServer
+from src.zhao_nishide.zn_client import ZNClient
+from src.zhao_nishide.zn_server import ZNServer
 
 
 class TestSetup(unittest.TestCase):
@@ -34,23 +34,23 @@ class TestAdd(unittest.TestCase):
         self.server.build_index()
 
     def test_simple_add(self):
-        add_token = self.client.add_token(1, 'abc')
+        add_token = self.client.add_token(bytes(1), 'abc')
         self.server.add(add_token)
         srch_token = self.client.srch_token('abc')
         result = self.server.search(srch_token)
-        self.assertEqual(result, [1])
+        self.assertEqual(result, [bytes(1)])
 
     def test_add_multiple_keywords(self):
         keywords = ['abc', 'abcd', 'abcde', 'abcdef', 'abcdefg', 'abcdefgh', 'abcdefghi']
 
         for keyword in keywords:
-            add_token = self.client.add_token(1, keyword)
+            add_token = self.client.add_token(bytes(1), keyword)
             self.server.add(add_token)
 
         for keyword in keywords:
             srch_token = self.client.srch_token(keyword)
             result = self.server.search(srch_token)
-            self.assertEqual(result, [1])
+            self.assertEqual(result, [bytes(1)])
 
 
 class TestSearch(unittest.TestCase):
@@ -95,11 +95,11 @@ class TestSearch(unittest.TestCase):
         number_of_documents = 100
 
         for ind in range(number_of_documents):
-            add_token = self.client.add_token(ind, 'abc')
+            add_token = self.client.add_token(bytes(ind), 'abc')
             self.server.add(add_token)
         srch_token = self.client.srch_token('abc')
         result = self.server.search(srch_token)
-        self.assertEqual(result, list(range(number_of_documents)))
+        self.assertEqual(result, list(map(lambda n: bytes(n), range(number_of_documents))))
 
     def test_singular_wildcard(self):
         keywords = ['cat', 'cut', 'sit', 'cet', 'dot', 'cyt', 'sat']

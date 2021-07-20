@@ -6,11 +6,12 @@ from typing import List
 from bitarray import bitarray
 
 # Project imports
-from src.zhao_nishide.bloom_filter_parameters import BF_HASH_FUNCTIONS, BF_ARRAY_SIZE
 from src.crypto import hash_string_to_int, hash_int, hash_string, hash_bytes
+from src.sigma_interface.sigma_client import SigmaClient
+from src.zhao_nishide.bloom_filter_parameters import BF_HASH_FUNCTIONS, BF_ARRAY_SIZE
 
 
-class ZNClient(object):
+class ZNClient(SigmaClient):
     """Zhao and Nishide client implementation.
 
     Based on: Fangming Zhao and Takashi Nishide. Searchable symmetric encryption supporting queries with
@@ -20,6 +21,8 @@ class ZNClient(object):
     This implementation uses Bloom filters for the index. Search queries are allowed to contain both _ and * wildcard
     characters. A _ character is used to indicate the presence of any single character, while the * character marks the
     presence of 0 or more characters.
+
+    Delete operations are not implemented as they are not required for Libertas.
     """
 
     def __init__(
@@ -30,6 +33,7 @@ class ZNClient(object):
         :returns: None
         :rtype: None
         """
+        super().__init__()
         self.k = None
 
     def setup(
@@ -40,13 +44,12 @@ class ZNClient(object):
 
         :param security_parameter: The required security strength
         :type security_parameter: int
-        :returns: The generated keys
-        :rtype: (List[bytes], bytes)
+        :returns: None
+        :rtype: None
         """
-        k_h: List[bytes] = [os.urandom(security_parameter//8) for _ in range(BF_HASH_FUNCTIONS)]
-        k_g: bytes = os.urandom(security_parameter//8)
+        k_h: List[bytes] = [os.urandom(security_parameter // 8) for _ in range(BF_HASH_FUNCTIONS)]
+        k_g: bytes = os.urandom(security_parameter // 8)
         self.k: (bytes, bytes) = (k_h, k_g)
-        return self.k
 
     def srch_token(
             self,
@@ -69,17 +72,17 @@ class ZNClient(object):
 
     def add_token(
             self,
-            ind: int,
+            ind: bytes,
             w: str,
-    ) -> (int, bitarray, bytes):
+    ) -> (bytes, bitarray, bytes):
         """Creates an add token for a document-keyword pair, to be send to a Z&N server.
         Add tokens consist of the document identifier, Bloom filter and its ID.
 
         :param ind: The document identifier of the document-keyword pair to add
-        :type ind: int
+        :type ind: bytes
         :param w: The keyword of the document-keyword pair to add
         :returns: An add token, a tuple consisting of a document identifier, Bloom filter and its ID
-        :rtype: (int, bitarray, bytes)
+        :rtype: (bytes, bitarray, bytes)
         """
         s_k = self._s_k(w + '\0')
         (k_h, k_g) = self.k
