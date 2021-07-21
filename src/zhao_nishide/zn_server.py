@@ -49,8 +49,8 @@ class ZNServer(SigmaServer):
             srch_token: (List[int], List[bytes]),
     ) -> List[bytes]:
         """Searches the index for a query represented by a search token.
-        The first part of a search token consists of Bloom filter positions, one per element in s_t(q).
-        The second part of a search token consists of hashes of these positions.
+        The first part of a search token consists of Bloom filter positions, one per element in s_t(q). The second part
+        of a search token consists of hashes of these positions.
 
         :param srch_token: The search token
         :type srch_token: (List[int], List[bytes])

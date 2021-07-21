@@ -143,7 +143,7 @@ class LibertasClient(object):
             ind: int,
             w: str,
     ) -> EncryptedUpdate:
-        """Encrypts (t, op, ind, w) tuples.
+        """Encrypts a (t, op, ind, w) tuple.
 
         :param t: The timestamp in the tuple
         :type t: int
@@ -163,7 +163,7 @@ class LibertasClient(object):
             self,
             cipher_text: EncryptedUpdate,
     ) -> Update:
-        """Decrypts encryptions of (t, op, ind, w) tuples.
+        """Decrypts the encryption of a (t, op, ind, w) tuple.
 
         :param cipher_text: The encrypted tuple
         :type cipher_text: EncryptedUpdate

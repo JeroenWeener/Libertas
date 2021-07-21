@@ -65,6 +65,8 @@ class ZNClient(SigmaClient):
         :rtype: (List[int], List[bytes])
         """
         (k_h, k_g) = self.k
+        # Append the query with '\0' to indicate the end of the query. This way 'test' is interpreted differently from
+        # 'test*'.
         s_t = self._s_t(q + '\0')
         td1s: List[int] = [hash_string_to_int(k, e) % BF_ARRAY_SIZE for e in s_t for k in k_h]
         td2s: List[bytes] = [hash_int(k_g, pos) for pos in td1s]
@@ -84,6 +86,7 @@ class ZNClient(SigmaClient):
         :returns: An add token, a tuple consisting of a document identifier, Bloom filter and its ID
         :rtype: (bytes, bitarray, bytes)
         """
+        # Append the keyword with '\0' to indicate the end of the keyword
         s_k = self._s_k(w + '\0')
         (k_h, k_g) = self.k
         b_id = hash_string(k_g, str(ind) + w)

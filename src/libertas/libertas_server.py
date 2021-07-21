@@ -54,7 +54,7 @@ class LibertasServer(object):
             self,
             add_token: any,
     ) -> None:
-        """Adds an add update to the index (see utils.Update)
+        """Adds an add update to the index (see utils.Update).
 
         :param add_token: The add token generated from the update by the client
         :type add_token: any
@@ -67,7 +67,7 @@ class LibertasServer(object):
             self,
             del_token: any,
     ) -> None:
-        """Adds an delete update to the index (see utils.Update)
+        """Adds an delete update to the index (see utils.Update).
 
         :param del_token: The delete token generated from the update by the client
         :type del_token: any
