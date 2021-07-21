@@ -19,8 +19,6 @@ class ZNServer(SigmaServer):
     This implementation uses Bloom filters for the index. Search queries are allowed to contain both _ and * wildcard
     characters. A _ character is used to indicate the presence of any single character, while the * character marks the
     presence of 0 or more characters.
-
-    Delete operations are not implemented as they are not required for Libertas.
     """
 
     def __init__(
@@ -83,3 +81,17 @@ class ZNServer(SigmaServer):
         :rtype: None
         """
         self.index.append(add_token)
+
+    def delete(
+            self,
+            del_token: bytes,
+    ) -> None:
+        """Deletes a document-keyword pair, represented by a delete token, from the index.
+        A delete token is a Bloom filter ID.
+
+        :param del_token: A delete token representing a document-keyword pair
+        :type del_token: bytes
+        :returns: None
+        :rtype: None
+        """
+        self.index = [(ind, bf, b_id) for (ind, bf, b_id) in self.index if b_id != del_token]

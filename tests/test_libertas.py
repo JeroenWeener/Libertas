@@ -115,8 +115,8 @@ class TestDelete(unittest.TestCase):
             del_token = self.client.del_token(2, w)
             self.server.delete(del_token)
             srch_token = self.client.srch_token(w)
-            decrypted_result = self.server.search(srch_token)
-            result = self.client.dec_search(decrypted_result)
+            encrypted_result = self.server.search(srch_token)
+            result = self.client.dec_search(encrypted_result)
             self.assertEqual([], result)
 
     def test_re_adding_after_delete(self):

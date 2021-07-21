@@ -53,6 +53,47 @@ class TestAdd(unittest.TestCase):
             self.assertEqual([bytes(1)], result)
 
 
+class TestDelete(unittest.TestCase):
+    def setUp(self):
+        self.client = ZNClient()
+        self.client.setup(2048)
+        self.server = ZNServer()
+        self.server.build_index()
+
+        self.keywords = ['abc', 'abcd', 'abcde', 'abcdef', 'abcdefg', 'abcdefgh', 'abcdefghi']
+
+        for keyword in self.keywords:
+            add_token = self.client.add_token(bytes(1), keyword)
+            self.server.add(add_token)
+            add_token = self.client.add_token(bytes(2), keyword)
+            self.server.add(add_token)
+
+    def test_simple_delete(self):
+        for w in self.keywords:
+            del_token = self.client.del_token(bytes(1), w)
+            self.server.delete(del_token)
+            srch_token = self.client.srch_token(w)
+            result = self.server.search(srch_token)
+            self.assertEqual([bytes(2)], result)
+        for w in self.keywords:
+            del_token = self.client.del_token(bytes(2), w)
+            self.server.delete(del_token)
+            srch_token = self.client.srch_token(w)
+            result = self.server.search(srch_token)
+            self.assertEqual([], result)
+
+    def test_re_adding_after_delete(self):
+        add_token = self.client.add_token(bytes(1), 'test')
+        self.server.add(add_token)
+        del_token = self.client.del_token(bytes(1), 'test')
+        self.server.delete(del_token)
+        re_add_token = self.client.add_token(bytes(1), 'test')
+        self.server.add(re_add_token)
+        srch_token = self.client.srch_token('test')
+        result = self.server.search(srch_token)
+        self.assertEqual([bytes(1)], result)
+
+
 class TestSearch(unittest.TestCase):
     def setUp(self):
         self.client = ZNClient()

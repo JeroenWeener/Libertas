@@ -21,8 +21,6 @@ class ZNClient(SigmaClient):
     This implementation uses Bloom filters for the index. Search queries are allowed to contain both _ and * wildcard
     characters. A _ character is used to indicate the presence of any single character, while the * character marks the
     presence of 0 or more characters.
-
-    Delete operations are not implemented as they are not required for Libertas.
     """
 
     def __init__(
@@ -83,6 +81,7 @@ class ZNClient(SigmaClient):
         :param ind: The document identifier of the document-keyword pair to add
         :type ind: bytes
         :param w: The keyword of the document-keyword pair to add
+        :type w: str
         :returns: An add token, a tuple consisting of a document identifier, Bloom filter and its ID
         :rtype: (bytes, bitarray, bytes)
         """
@@ -104,6 +103,25 @@ class ZNClient(SigmaClient):
             first_hash_bit = h[0] & 1
             bloom_filter[pos] ^= first_hash_bit
         return ind, bloom_filter, b_id
+
+    def del_token(
+            self,
+            ind: bytes,
+            w: str,
+    ) -> bytes:
+        """Creates a delete token for a document-keyword pair, to be send to a Z&N server.
+        A delete token is a Bloom filter ID.
+
+        :param ind: The document identifier of the document-keyword pair to delete
+        :type ind: bytes
+        :param w: The keyword of the document-keyword pair to delete
+        :type w: str
+        :returns: A delete token, which is a Bloom filter ID
+        :rtype: bytes
+        """
+        (_, k_g) = self.k
+        b_id = hash_string(k_g, str(ind) + w)
+        return b_id
 
     def _s_k(
             self,
