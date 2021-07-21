@@ -31,7 +31,7 @@ class TestEncryptUpdates(unittest.TestCase):
         self.server.build_index()
 
     def test_encrypting_updates(self):
-        update = (t, op, ind, w) = (1, Op.ADD, 1, 'abc')
+        update = (t, op, ind, w) = (1, Op.ADD, 2, 'abc')
 
         cipher_text = self.client._encrypt_update(t, op, ind, w)
         result = self.client._decrypt_update(cipher_text)
