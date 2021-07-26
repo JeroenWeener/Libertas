@@ -1,4 +1,11 @@
-class SigmaClient(object):
+# Python imports
+from typing import Generic
+
+# Project imports
+from utils import AddToken, SrchToken
+
+
+class SigmaClient(Generic[AddToken, SrchToken]):
     """Client interface of a wildcard supporting SSE scheme to be used for a Libertas client."""
 
     def __init__(
@@ -27,13 +34,14 @@ class SigmaClient(object):
     def srch_token(
             self,
             q: str,
-    ) -> any:
+    ) -> SrchToken:
         """Creates a search token for a query, to be send to the server.
 
         :param q: The query, a string of characters, possibly containing wildcards
         :type q: str
-        :returns: The search token
-        :rtype: any
+        :returns: The search token and add tokens for document-keyword pairs that have to be re-added as part of the
+        clean-up procedure.
+        :rtype: SrchToken
         """
         pass
 
@@ -41,7 +49,7 @@ class SigmaClient(object):
             self,
             ind: bytes,
             w: str,
-    ) -> any:
+    ) -> AddToken:
         """Creates an add token for a document-keyword pair, to be send to the server.
 
         :param ind: The document identifier of the document in the document-keyword pair that is to be added
@@ -49,6 +57,6 @@ class SigmaClient(object):
         :param w: The keyword in the document-keyword pair that is to be added
         :type w: str
         :returns: the add token
-        :rtype: any
+        :rtype: AddToken
         """
         pass

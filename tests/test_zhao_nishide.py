@@ -74,13 +74,13 @@ class TestDelete(unittest.TestCase):
             self.server.delete(del_token)
             srch_token = self.client.srch_token(w)
             result = self.server.search(srch_token)
-            self.assertEqual([bytes(2)], result)
+            self.assertTrue({bytes(2)}.issubset(set(result)))
         for w in self.keywords:
             del_token = self.client.del_token(bytes(2), w)
             self.server.delete(del_token)
-            srch_token = self.client.srch_token(w)
-            result = self.server.search(srch_token)
-            self.assertEqual([], result)
+        srch_token = self.client.srch_token('*')
+        result = self.server.search(srch_token)
+        self.assertEqual([], result)
 
     def test_re_adding_after_delete(self):
         add_token = self.client.add_token(bytes(1), 'test')
@@ -241,6 +241,24 @@ class TestSearch(unittest.TestCase):
             srch_token = self.client.srch_token(q)
             result = self.server.search(srch_token)
             self.assertTrue(set(r).issubset(result))
+
+
+class TestSearchAndDelete(unittest.TestCase):
+    def setUp(self):
+        self.client = ZNClient()
+        self.client.setup(2048)
+        self.server = ZNServer()
+        self.server.build_index()
+
+    def test_simple_search(self):
+        add_token = self.client.add_token(bytes(1), 'test')
+        self.server.add(add_token)
+        srch_token = self.client.srch_token('test')
+        result = self.server.search_and_delete(srch_token)
+        srch_token2 = self.client.srch_token('test')
+        result2 = self.server.search_and_delete(srch_token2)
+        self.assertEqual([bytes(1)], result)
+        self.assertEqual([], result2)
 
 
 if __name__ == '__main__':

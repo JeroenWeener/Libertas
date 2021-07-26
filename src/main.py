@@ -9,7 +9,7 @@ from src.zhao_nishide.zn_client import ZNClient
 from src.zhao_nishide.zn_server import ZNServer
 from utils import underline_start, underline_end
 
-"""An implementation of Libertas: a wildcard supporting, backward private, SSE scheme.
+"""An implementation of Libertas: a wildcard supporting, backward private, SSE scheme (includes clean-up procedure).
 
 Reference paper: https://www.link-to-paper.nl
 
@@ -185,7 +185,12 @@ and \'*\' to indicate 0 or more characters'.format(self.search))
             q = input_parts[1]
             srch_token = self.client.srch_token(q)
             encrypted_results = self.server.search(srch_token)
-            results = self.client.dec_search(encrypted_results)
+            (results, add_tokens) = self.client.dec_search(encrypted_results)
+
+            # Re-add document-keyword pairs
+            for add_token in add_tokens:
+                self.server.add(add_token)
+
             if len(results) == 0:
                 print('There are no matching documents.')
             else:

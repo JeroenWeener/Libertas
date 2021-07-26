@@ -1,5 +1,5 @@
 # Python imports
-from typing import List
+from typing import List, Tuple
 
 # Third-party imports
 from bitarray import bitarray
@@ -9,7 +9,7 @@ from src.crypto import hash_bytes
 from src.sigma_interface.sigma_server import SigmaServer
 
 
-class ZNServer(SigmaServer):
+class ZNServer(SigmaServer[Tuple[bytes, bitarray, bytes], Tuple[List[int], List[bytes]]]):
     """Zhao and Nishide server implementation.
 
     Based on: Fangming Zhao and Takashi Nishide. Searchable symmetric encryption supporting queries with
@@ -46,7 +46,7 @@ class ZNServer(SigmaServer):
             self,
             srch_token: (List[int], List[bytes]),
     ) -> List[bytes]:
-        """Searches the index for a query represented by a search token.
+        """Searches the index for a query represented by a search token and returns matching document IDs.
         The first part of a search token consists of Bloom filter positions, one per element in s_t(q). The second part
         of a search token consists of hashes of these positions.
 
@@ -64,6 +64,38 @@ class ZNServer(SigmaServer):
                 if bit_array[pos] ^ mask_bit == 0:
                     break
             else:
+                if ind not in results:
+                    results.append(ind)
+        return results
+
+    def search_and_delete(
+            self,
+            srch_token: (List[int], List[bytes]),
+    ) -> List[int]:
+        """Searches the index for a query represented by a search token and returns matching document IDs.
+
+        Additionally, as part of the clean-up procedure, delete all matching Bloom filters. The client is tasked with
+        re-adding relevant document-keyword pairs.
+
+        The first part of a search token consists of Bloom filter positions, one per element in s_t(q). The second part
+        of a search token consists of hashes of these positions.
+
+        :param srch_token: The search token
+        :type srch_token: (List[int], List[bytes])
+        :returns: A list containing the identifiers of matching documents and possibly some other documents, as the
+        use of Bloom filters introduce false positives.
+        :rtype: List[bytes]
+        """
+        (td1s, td2s) = srch_token
+        results = []
+        for ind, bit_array, b_id in self.index[:]:
+            for pos, h_pos in zip(td1s, td2s):
+                mask_bit = hash_bytes(b_id, h_pos)[0] & 1
+                if bit_array[pos] ^ mask_bit == 0:
+                    break
+            else:
+                # Delete matching Bloom filters
+                self.delete(b_id)
                 if ind not in results:
                     results.append(ind)
         return results
