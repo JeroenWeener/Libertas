@@ -48,7 +48,7 @@ class LibertasServer(object):
         :returns: A list of encrypted updates
         :rtype: List[EncryptedUpdate]
         """
-        return self.sigma.search_and_delete(srch_token)
+        return self.sigma.search(srch_token)
 
     def add(
             self,

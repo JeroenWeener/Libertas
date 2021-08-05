@@ -9,7 +9,11 @@ from src.zhao_nishide.zn_client import ZNClient
 from src.zhao_nishide.zn_server import ZNServer
 from utils import underline_start, underline_end
 
-"""An implementation of Libertas: a wildcard supporting, backward private, SSE scheme (includes clean-up procedure).
+"""Implementations of:
+
+Zhao & Nishide: a DSSE scheme supporting wildcards.
+Libertas: a wildcard supporting, backward private, DSSE scheme.
+Libertas+: An extension to Libertas, featuring a clean-up procedure, mitigating the storage blow-up due to updates.
 
 Reference paper: https://www.link-to-paper.nl
 
@@ -18,10 +22,10 @@ Created: 15-07-2021
 """
 
 
-class LibertasCLI(object):
-    """An interactive command line interface to a Libertas client and server. Data is never actually send over a
-    network. Rather, both client and server are instantiated in the same Python environment and share data by passing
-    variables.
+class CLI(object):
+    """An interactive command line interface to operate a SSE client-server pair. Supports Libertas, Libertas+ and
+    Zhao & Nishide. Data is never actually send over a network. Rather, both client and server are instantiated in the
+    same Python environment and share data by passing variables.
     """
 
     def __init__(
@@ -199,7 +203,7 @@ and \'*\' to indicate 0 or more characters'.format(self.search))
 
 def main(
 ) -> None:
-    LibertasCLI().main()
+    CLI().main()
 
 
 if __name__ == '__main__':

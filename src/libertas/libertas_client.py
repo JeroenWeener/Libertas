@@ -10,7 +10,7 @@ from src.zhao_nishide.zn_client import ZNClient
 
 
 class LibertasClient(object):
-    """Libertas client implementation, including the clean-up procedure.
+    """Libertas client implementation.
 
     Libertas uses a wildcard supporting SSE scheme internally. In addition to the security guarantees and functionality
     provided by the underlying scheme, Libertas provides Update Pattern Revealing Backward Privacy.
@@ -105,15 +105,10 @@ class LibertasClient(object):
         relevant for the query. Document identifiers are relevant when there is a keyword-document pair that is
         added, but not deleted afterwards.
 
-        As part of the clean-up protocol, the updates send by the server are deleted there. Therefore, we need to re-add
-        the document-keyword pairs that should still be in the index. Because of this, we additionally return add tokens
-        for all document-keyword pairs.
-
         :param r_star: A list of encrypted results
         :type r_star: List[bytes]
-        :returns: A list of document identifiers matching with the initial query and a list of add tokens to re-add
-        relevant document-keyword pairs
-        :rtype: List[int], List[AddTokens]
+        :returns: A list of document identifiers matching with the initial query
+        :rtype: List[int]
         """
         # Decrypt r_star and sort it according to timestamp t
         decrypted_updates: List[Update] = list(map(lambda e: self._decrypt_update(e), r_star))
@@ -137,17 +132,10 @@ class LibertasClient(object):
                 documents_list.remove(ind)
                 keyword_documents_dict[w] = documents_list
 
-        # Construct add tokens for document-keyword pairs that should be in the index
-        re_add_tokens: List[AddToken] = []
-        for w in keyword_documents_dict.keys():
-            for ind in keyword_documents_dict[w]:
-                re_add_token = self.add_token(ind, w)
-                re_add_tokens.append(re_add_token)
-
         # Combine the ind values for all keywords and remove duplicates
         results = [ind for sub_results in keyword_documents_dict.values() for ind in sub_results]
 
-        return list(set(results)), re_add_tokens
+        return list(set(results))
 
     def _encrypt_update(
             self,

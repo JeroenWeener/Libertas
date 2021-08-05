@@ -254,9 +254,9 @@ class TestSearchAndDelete(unittest.TestCase):
         add_token = self.client.add_token(bytes(1), 'test')
         self.server.add(add_token)
         srch_token = self.client.srch_token('test')
-        result = self.server.search_and_delete(srch_token)
+        result = self.server.search_plus(srch_token)
         srch_token2 = self.client.srch_token('test')
-        result2 = self.server.search_and_delete(srch_token2)
+        result2 = self.server.search_plus(srch_token2)
         self.assertEqual([bytes(1)], result)
         self.assertEqual([], result2)
 

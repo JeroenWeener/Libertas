@@ -6,7 +6,7 @@ from utils import AddToken, SrchToken
 
 
 class SigmaClient(Generic[AddToken, SrchToken]):
-    """Client interface of a wildcard supporting SSE scheme to be used for a Libertas client."""
+    """Client interface of a wildcard supporting SSE scheme to be used for a Libertas(+) client."""
 
     def __init__(
             self,

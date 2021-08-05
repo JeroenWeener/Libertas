@@ -68,15 +68,13 @@ class ZNServer(SigmaServer[Tuple[bytes, bitarray, bytes], Tuple[List[int], List[
                     results.append(ind)
         return results
 
-    def search_and_delete(
+    def search_plus(
             self,
             srch_token: (List[int], List[bytes]),
     ) -> List[int]:
         """Searches the index for a query represented by a search token and returns matching document IDs.
-
         Additionally, as part of the clean-up procedure, delete all matching Bloom filters. The client is tasked with
         re-adding relevant document-keyword pairs.
-
         The first part of a search token consists of Bloom filter positions, one per element in s_t(q). The second part
         of a search token consists of hashes of these positions.
 
