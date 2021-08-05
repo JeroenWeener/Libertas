@@ -1,9 +1,12 @@
 # Python imports
-from typing import List
+from typing import List, Generic
+
+# Project imports
+from utils import AddToken, SrchToken
 
 
-class SigmaServer(object):
-    """Server interface of a wildcard supporting SSE scheme to be used for a Libertas client."""
+class SigmaServer(Generic[AddToken, SrchToken]):
+    """Server interface of a wildcard supporting SSE scheme to be used for a Libertas(+) server."""
 
     def __init__(
             self,
@@ -27,12 +30,27 @@ class SigmaServer(object):
 
     def search(
             self,
-            srch_token: any,
+            srch_token: SrchToken,
     ) -> List[bytes]:
-        """Searches the index for a query represented by a search token.
+        """Search algorithm to be run by Libertas instances. Searches the index for a query represented by a search
+        token and returns matching document identifiers.
 
         :param srch_token: The search token
-        :type srch_token: any
+        :type srch_token: SrchToken
+        :returns: A list of results
+        :rtype: List[bytes]
+        """
+
+    def search_plus(
+            self,
+            srch_token: SrchToken,
+    ) -> List[bytes]:
+        """Search algorithm to be run by Libertas+ instances. Searches the index for a query represented by a search
+        token and returns matching document identifiers. As part of the clean-up procedure, the results are removed from
+        the index. The client is tasked with re-adding relevant document-keyword pairs.
+
+        :param srch_token: The search token
+        :type srch_token: SrchToken
         :returns: A list of results
         :rtype: List[bytes]
         """
@@ -40,12 +58,12 @@ class SigmaServer(object):
 
     def add(
             self,
-            add_token: any,
+            add_token: AddToken,
     ) -> None:
         """Adds a document-keyword pair, represented by an add token, to the index.
 
         :param add_token: An add token representing a document-keyword pair
-        :type add_token: any
+        :type add_token: AddToken
         :returns: None
         :rtype: None
         """

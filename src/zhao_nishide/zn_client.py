@@ -1,6 +1,6 @@
 # Python imports
 import os
-from typing import List
+from typing import List, Tuple
 
 # Third-party imports
 from bitarray import bitarray
@@ -11,7 +11,7 @@ from src.sigma_interface.sigma_client import SigmaClient
 from src.zhao_nishide.bloom_filter_parameters import BF_HASH_FUNCTIONS, BF_ARRAY_SIZE
 
 
-class ZNClient(SigmaClient):
+class ZNClient(SigmaClient[Tuple[bytes, bitarray, bytes], Tuple[List[int], List[bytes]]]):
     """Zhao and Nishide client implementation.
 
     Based on: Fangming Zhao and Takashi Nishide. Searchable symmetric encryption supporting queries with
@@ -37,7 +37,7 @@ class ZNClient(SigmaClient):
     def setup(
             self,
             security_parameter: int,
-    ) -> (List[bytes], bytes):
+    ) -> None:
         """Sets up the Z&N client, generating keys k_h and k_g.
 
         :param security_parameter: The required security strength (bits)
@@ -123,8 +123,9 @@ class ZNClient(SigmaClient):
         b_id = hash_string(k_g, str(ind) + w)
         return b_id
 
+    @classmethod
     def _s_k(
-            self,
+            cls,
             w: str,
     ) -> List[str]:
         """Generates the S_K set for a keyword.
@@ -134,10 +135,11 @@ class ZNClient(SigmaClient):
         :returns: The S_K set of the keyword
         :rtype: List[str]
         """
-        return self._s_k_o(w) + self._s_k_p(w)
+        return cls._s_k_o(w) + cls._s_k_p(w)
 
+    @classmethod
     def _s_k_o(
-            self,
+            cls,
             w: str,
     ) -> List[str]:
         """Generates the S_K^(o) set for a keyword.
@@ -150,8 +152,9 @@ class ZNClient(SigmaClient):
         """
         return [str(n + 1) + ':' + c for n, c in zip(range(len(w)), w)]
 
+    @classmethod
     def _s_k_p(
-            self,
+            cls,
             w: str,
     ) -> List[str]:
         """Generates the S_K^(p) set for a keyword.
@@ -161,10 +164,11 @@ class ZNClient(SigmaClient):
         :returns: The S_K set of the keyword
         :rtype: List[str]
         """
-        return self._s_k_p1(w) + self._s_k_p2(w)
+        return cls._s_k_p1(w) + cls._s_k_p2(w)
 
+    @classmethod
     def _s_k_p1(
-            self,
+            cls,
             w: str,
     ) -> List[str]:
         """Generates the S_K^(p1) set for a keyword.
@@ -187,8 +191,9 @@ class ZNClient(SigmaClient):
                 for pair in pair_count_dict.keys()
                 for count in range(pair_count_dict[pair])]
 
+    @classmethod
     def _s_k_p2(
-            self,
+            cls,
             w: str,
     ) -> List[str]:
         """Generates the S_K^(p2) set for a keyword.
@@ -211,8 +216,9 @@ class ZNClient(SigmaClient):
                 for pair in pair_count_dict.keys()
                 for count in range(pair_count_dict[pair])]
 
+    @classmethod
     def _s_t(
-            self,
+            cls,
             q: str,
     ) -> List[str]:
         """Generates the S_T set for a keyword.
@@ -222,10 +228,11 @@ class ZNClient(SigmaClient):
         :returns: The S_T set of the query
         :rtype: List[str]
         """
-        return self._s_t_o(q) + self._s_t_p(q)
+        return cls._s_t_o(q) + cls._s_t_p(q)
 
+    @classmethod
     def _s_t_o(
-            self,
+            cls,
             q: str,
     ) -> List[str]:
         """Generates the S_T^(o) set for a query.
@@ -240,8 +247,9 @@ class ZNClient(SigmaClient):
         fixed_characters = q.split('*')[0]
         return [str(c + 1) + ':' + q[c] for c in range(len(fixed_characters)) if q[c] != '_']
 
+    @classmethod
     def _s_t_p(
-            self,
+            cls,
             q: str,
     ) -> List[str]:
         """Generates the S_T^(p) set for a keyword.
@@ -251,10 +259,11 @@ class ZNClient(SigmaClient):
         :returns: The S_T set of the query
         :rtype: List[str]
         """
-        return self._s_t_p1(q) + self._s_t_p2(q)
+        return cls._s_t_p1(q) + cls._s_t_p2(q)
 
+    @classmethod
     def _s_t_p1(
-            self,
+            cls,
             q: str,
     ) -> List[str]:
         """Generates the S_T^(p1) set for a query.
@@ -280,8 +289,9 @@ class ZNClient(SigmaClient):
                 for pair in pair_count_dict.keys()
                 for count in range(pair_count_dict[pair])]
 
+    @classmethod
     def _s_t_p2(
-            self,
+            cls,
             q: str,
     ) -> List[str]:
         """Generates the S_T^(p2) set for a query.
@@ -292,4 +302,4 @@ class ZNClient(SigmaClient):
         :returns: The S_T^(p2) set of the query
         :rtype: List[str]
         """
-        return self._s_k_p2(q.replace('*', '').replace('_', ''))
+        return cls._s_k_p2(q.replace('*', '').replace('_', ''))

@@ -5,7 +5,7 @@ from typing import Dict, List
 # Project imports
 from src.crypto import decrypt, encrypt
 from src.sigma_interface.sigma_client import SigmaClient
-from src.utils import EncryptedUpdate, Update, Op
+from src.utils import EncryptedUpdate, Update, Op, AddToken, SrchToken
 from src.zhao_nishide.zn_client import ZNClient
 
 
@@ -18,7 +18,7 @@ class LibertasClient(object):
 
     def __init__(
             self,
-            sigma: SigmaClient,
+            sigma: SigmaClient[AddToken, SrchToken],
     ) -> None:
         """Initializes a Libertas client, setting the underlying client scheme that is used.
 
@@ -51,13 +51,13 @@ class LibertasClient(object):
     def srch_token(
             self,
             q: str,
-    ) -> any:
+    ) -> SrchToken:
         """Creates a search token for a query, to be send to the server.
 
         :param q: The query, a string of characters, possibly containing wildcards
         :type q: str
         :returns: The search token
-        :rtype: any
+        :rtype: SrchToken
         """
         return self.sigma.srch_token(q)
 
@@ -65,7 +65,7 @@ class LibertasClient(object):
             self,
             ind: int,
             w: str,
-    ) -> any:
+    ) -> AddToken:
         """Creates an add token for a document-keyword pair, to be send to the server.
 
         :param ind: The document identifier of the document in the document-keyword pair that is to be added
@@ -73,7 +73,7 @@ class LibertasClient(object):
         :param w: The keyword in the document-keyword pair that is to be added
         :type w: str
         :returns: the add token
-        :rtype: any
+        :rtype: AddToken
         """
         self.t = self.t + 1
         content = self._encrypt_update(self.t, Op.ADD, ind, w)
@@ -83,7 +83,7 @@ class LibertasClient(object):
             self,
             ind: int,
             w: str,
-    ) -> any:
+    ) -> AddToken:
         """Creates a delete token for a document-keyword pair, to be send to the server.
 
         :param ind: The document identifier of the document in the document-keyword pair that is to be deleted
@@ -91,7 +91,7 @@ class LibertasClient(object):
         :param w: The keyword in the document-keyword pair that is to be deleted
         :type w: str
         :returns: the delete token
-        :rtype: any
+        :rtype: AddToken
         """
         self.t = self.t + 1
         content = self._encrypt_update(self.t, Op.DEL, ind, w)
@@ -100,7 +100,7 @@ class LibertasClient(object):
     def dec_search(
             self,
             r_star: List[EncryptedUpdate],
-    ) -> List[int]:
+    ) -> (List[int], List[AddToken]):
         """Decrypts encrypted results received from the server and determines which document identifiers are still
         relevant for the query. Document identifiers are relevant when there is a keyword-document pair that is
         added, but not deleted afterwards.
@@ -134,6 +134,7 @@ class LibertasClient(object):
 
         # Combine the ind values for all keywords and remove duplicates
         results = [ind for sub_results in keyword_documents_dict.values() for ind in sub_results]
+
         return list(set(results))
 
     def _encrypt_update(

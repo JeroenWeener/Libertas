@@ -1,12 +1,17 @@
 # Python imports
 from enum import Enum
-from typing import Tuple
+from typing import Tuple, TypeVar
 
 
 class Op(Enum):
     """Enum representing the two types of update operations in dynamic SSE schemes: add and delete."""
     ADD = 1
     DEL = 2
+
+
+"""Generics for Add and Search tokens."""
+AddToken = TypeVar('AddToken')
+SrchToken = TypeVar('SrchToken')
 
 
 """Type declaration for Libertas updates, (t, op, ind, w) tuples."""

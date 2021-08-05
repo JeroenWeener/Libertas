@@ -2,103 +2,147 @@
 import unittest
 
 # Project imports
-from src.zhao_nishide.bloom_filter_parameters import BF_HASH_FUNCTIONS
+from src.libertas_plus.libertas_plus_client import LibertasPlusClient
+from src.libertas_plus.libertas_plus_server import LibertasPlusServer
+from src.utils import Op
 from src.zhao_nishide.zn_client import ZNClient
 from src.zhao_nishide.zn_server import ZNServer
 
 
 class TestSetup(unittest.TestCase):
     def test_setup(self):
-        security_parameter = 2048
+        security_parameter = (256, 2048)
 
-        client = ZNClient()
+        zn_client = ZNClient()
+        client = LibertasPlusClient(zn_client)
         client.setup(security_parameter)
-        (k_h, k_g) = client.k
 
-        self.assertEqual(BF_HASH_FUNCTIONS, len(k_h))
-        for k in k_h:
-            self.assertEqual(security_parameter // 8, len(k))
-        self.assertEqual(security_parameter // 8, len(k_g))
+        self.assertEqual(security_parameter[0] // 8, len(client.k))
+        self.assertEqual(0, client.t)
 
-    def test_build_index(self):
-        server = ZNServer()
-        server.build_index()
-        self.assertEqual([], server.index)
+
+class TestEncryptUpdates(unittest.TestCase):
+    def setUp(self):
+        zn_client = ZNClient()
+        zn_server = ZNServer()
+        self.client = LibertasPlusClient(zn_client)
+        self.server = LibertasPlusServer(zn_server)
+        self.client.setup((256, 2048))
+        self.server.build_index()
+
+    def test_encrypting_updates(self):
+        update = (t, op, ind, w) = (1, Op.ADD, 2, 'abc')
+
+        cipher_text = self.client._encrypt_update(t, op, ind, w)
+        result = self.client._decrypt_update(cipher_text)
+        self.assertEqual(update, result)
+
+
+class TestUniquenessOfTokens(unittest.TestCase):
+    def setUp(self):
+        zn_client = ZNClient()
+        self.client = LibertasPlusClient(zn_client)
+        self.client.setup((256, 2048))
+
+    def test_add_token_uniqueness(self):
+        add_token = self.client.add_token(1, 'test')
+        add_token2 = self.client.add_token(1, 'test')
+        self.assertNotEqual(add_token, add_token2)
+
+    def test_delete_token_uniqueness(self):
+        del_token = self.client.del_token(1, 'test')
+        del_token2 = self.client.del_token(1, 'test')
+        self.assertNotEqual(del_token, del_token2)
 
 
 class TestAdd(unittest.TestCase):
     def setUp(self):
-        self.client = ZNClient()
-        self.client.setup(2048)
-        self.server = ZNServer()
+        zn_client = ZNClient()
+        zn_server = ZNServer()
+        self.client = LibertasPlusClient(zn_client)
+        self.server = LibertasPlusServer(zn_server)
+        self.client.setup((256, 2048))
         self.server.build_index()
 
     def test_simple_add(self):
-        add_token = self.client.add_token(bytes(1), 'abc')
+        add_token = self.client.add_token(1, 'abc')
         self.server.add(add_token)
         srch_token = self.client.srch_token('abc')
-        result = self.server.search(srch_token)
-        self.assertEqual([bytes(1)], result)
+        encrypted_result = self.server.search(srch_token)
+        (result, _) = self.client.dec_search(encrypted_result)
+        self.assertEqual([1], result)
 
     def test_add_multiple_keywords(self):
         keywords = ['abc', 'abcd', 'abcde', 'abcdef', 'abcdefg', 'abcdefgh', 'abcdefghi']
 
         for keyword in keywords:
-            add_token = self.client.add_token(bytes(1), keyword)
+            add_token = self.client.add_token(1, keyword)
             self.server.add(add_token)
 
         for keyword in keywords:
             srch_token = self.client.srch_token(keyword)
-            result = self.server.search(srch_token)
-            self.assertEqual([bytes(1)], result)
+            encrypted_result = self.server.search(srch_token)
+            (result, add_tokens) = self.client.dec_search(encrypted_result)
+            for add_token in add_tokens:
+                self.server.add(add_token)
+            self.assertEqual([1], result)
 
 
 class TestDelete(unittest.TestCase):
     def setUp(self):
-        self.client = ZNClient()
-        self.client.setup(2048)
-        self.server = ZNServer()
+        zn_client = ZNClient()
+        zn_server = ZNServer()
+        self.client = LibertasPlusClient(zn_client)
+        self.server = LibertasPlusServer(zn_server)
+        self.client.setup((256, 2048))
         self.server.build_index()
 
         self.keywords = ['abc', 'abcd', 'abcde', 'abcdef', 'abcdefg', 'abcdefgh', 'abcdefghi']
 
         for keyword in self.keywords:
-            add_token = self.client.add_token(bytes(1), keyword)
+            add_token = self.client.add_token(1, keyword)
             self.server.add(add_token)
-            add_token = self.client.add_token(bytes(2), keyword)
+            add_token = self.client.add_token(2, keyword)
             self.server.add(add_token)
 
     def test_simple_delete(self):
         for w in self.keywords:
-            del_token = self.client.del_token(bytes(1), w)
+            del_token = self.client.del_token(1, w)
             self.server.delete(del_token)
             srch_token = self.client.srch_token(w)
-            result = self.server.search(srch_token)
-            self.assertTrue({bytes(2)}.issubset(set(result)))
+            encrypted_result = self.server.search(srch_token)
+            (result, add_tokens) = self.client.dec_search(encrypted_result)
+            for add_token in add_tokens:
+                self.server.add(add_token)
+            self.assertEqual([2], result)
         for w in self.keywords:
-            del_token = self.client.del_token(bytes(2), w)
+            del_token = self.client.del_token(2, w)
             self.server.delete(del_token)
-        srch_token = self.client.srch_token('*')
-        result = self.server.search(srch_token)
-        self.assertEqual([], result)
+            srch_token = self.client.srch_token(w)
+            encrypted_result = self.server.search(srch_token)
+            (result, _) = self.client.dec_search(encrypted_result)
+            self.assertEqual([], result)
 
     def test_re_adding_after_delete(self):
-        add_token = self.client.add_token(bytes(1), 'test')
+        add_token = self.client.add_token(1, 'test')
         self.server.add(add_token)
-        del_token = self.client.del_token(bytes(1), 'test')
+        del_token = self.client.del_token(1, 'test')
         self.server.delete(del_token)
-        re_add_token = self.client.add_token(bytes(1), 'test')
+        re_add_token = self.client.add_token(1, 'test')
         self.server.add(re_add_token)
         srch_token = self.client.srch_token('test')
-        result = self.server.search(srch_token)
-        self.assertEqual([bytes(1)], result)
+        encrypted_result = self.server.search(srch_token)
+        (result, _) = self.client.dec_search(encrypted_result)
+        self.assertEqual([1], result)
 
 
 class TestSearch(unittest.TestCase):
     def setUp(self):
-        self.client = ZNClient()
-        self.client.setup(2048)
-        self.server = ZNServer()
+        zn_client = ZNClient()
+        zn_server = ZNServer()
+        self.client = LibertasPlusClient(zn_client)
+        self.server = LibertasPlusServer(zn_server)
+        self.client.setup((256, 2048))
         self.server.build_index()
 
     def test_search_empty_index(self):
@@ -106,7 +150,8 @@ class TestSearch(unittest.TestCase):
 
         for query in queries:
             srch_token = self.client.srch_token(query)
-            result = self.server.search(srch_token)
+            encrypted_result = self.server.search(srch_token)
+            (result, _) = self.client.dec_search(encrypted_result)
             self.assertEqual([], result)
 
     def test_empty_query(self):
@@ -117,8 +162,9 @@ class TestSearch(unittest.TestCase):
             self.server.add(add_token)
 
         srch_token = self.client.srch_token('')
-        result = self.server.search(srch_token)
-        self.assertTrue({7}.issubset(set(result)))
+        encrypted_result = self.server.search(srch_token)
+        (result, _) = self.client.dec_search(encrypted_result)
+        self.assertTrue({7}.issubset(result))
 
     def test_simple_search(self):
         keywords = ['abc', 'abcd', 'abcde', 'abcdef', 'abcdefg', 'abcdefgh', 'abcdefghi']
@@ -129,18 +175,20 @@ class TestSearch(unittest.TestCase):
 
         for ind, w in zip(range(len(keywords)), keywords):
             srch_token = self.client.srch_token(w)
-            result = self.server.search(srch_token)
-            self.assertTrue({ind}.issubset(set(result)))
+            encrypted_result = self.server.search(srch_token)
+            (result, _) = self.client.dec_search(encrypted_result)
+            self.assertEqual([ind], result)
 
     def test_search_multiple_matches(self):
         number_of_documents = 100
 
         for ind in range(number_of_documents):
-            add_token = self.client.add_token(bytes(ind), 'abc')
+            add_token = self.client.add_token(ind, 'abc')
             self.server.add(add_token)
         srch_token = self.client.srch_token('abc')
-        result = self.server.search(srch_token)
-        self.assertTrue(set(map(lambda n: bytes(n), range(number_of_documents))).issubset(set(result)))
+        encrypted_result = self.server.search(srch_token)
+        (result, _) = self.client.dec_search(encrypted_result)
+        self.assertEqual(list(range(number_of_documents)), result)
 
     def test_singular_wildcard(self):
         keywords = ['cat', 'cut', 'sit', 'cet', 'dot', 'cyt', 'sat']
@@ -160,8 +208,11 @@ class TestSearch(unittest.TestCase):
 
         for q, r in zip(queries, results):
             srch_token = self.client.srch_token(q)
-            result = self.server.search(srch_token)
-            self.assertTrue(set(r).issubset(result))
+            encrypted_result = self.server.search(srch_token)
+            (result, add_tokens) = self.client.dec_search(encrypted_result)
+            for add_token in add_tokens:
+                self.server.add(add_token)
+            self.assertTrue(set(r).issubset(set(result)))
 
     def test_plural_wildcard(self):
         keywords = ['', 'test', 'testcase', 'testcasesimulator', 'testcasesimulatorproof']
@@ -183,8 +234,11 @@ class TestSearch(unittest.TestCase):
 
         for q, r in zip(queries, results):
             srch_token = self.client.srch_token(q)
-            result = self.server.search(srch_token)
-            self.assertTrue(set(r).issubset(result))
+            encrypted_result = self.server.search(srch_token)
+            (result, add_tokens) = self.client.dec_search(encrypted_result)
+            for add_token in add_tokens:
+                self.server.add(add_token)
+            self.assertTrue(set(r).issubset(set(result)))
 
     def test_date_searches(self):
         keywords = [
@@ -215,7 +269,10 @@ class TestSearch(unittest.TestCase):
 
         for q, r in zip(queries, results):
             srch_token = self.client.srch_token(q)
-            result = self.server.search(srch_token)
+            encrypted_result = self.server.search(srch_token)
+            (result, add_tokens) = self.client.dec_search(encrypted_result)
+            for add_token in add_tokens:
+                self.server.add(add_token)
             self.assertTrue(set(r).issubset(set(result)))
 
     def test_complex_searches(self):
@@ -239,26 +296,11 @@ class TestSearch(unittest.TestCase):
 
         for q, r in zip(queries, results):
             srch_token = self.client.srch_token(q)
-            result = self.server.search(srch_token)
-            self.assertTrue(set(r).issubset(result))
-
-
-class TestSearchAndDelete(unittest.TestCase):
-    def setUp(self):
-        self.client = ZNClient()
-        self.client.setup(2048)
-        self.server = ZNServer()
-        self.server.build_index()
-
-    def test_simple_search(self):
-        add_token = self.client.add_token(bytes(1), 'test')
-        self.server.add(add_token)
-        srch_token = self.client.srch_token('test')
-        result = self.server.search_plus(srch_token)
-        srch_token2 = self.client.srch_token('test')
-        result2 = self.server.search_plus(srch_token2)
-        self.assertEqual([bytes(1)], result)
-        self.assertEqual([], result2)
+            encrypted_result = self.server.search(srch_token)
+            (result, add_tokens) = self.client.dec_search(encrypted_result)
+            for add_token in add_tokens:
+                self.server.add(add_token)
+            self.assertTrue(set(r).issubset(set(result)))
 
 
 if __name__ == '__main__':
