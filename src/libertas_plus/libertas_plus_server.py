@@ -2,7 +2,7 @@
 from typing import List
 
 # Project imports
-from libertas.libertas_server import LibertasServer
+from src.libertas.libertas_server import LibertasServer
 from src.utils import EncryptedUpdate, SrchToken
 
 

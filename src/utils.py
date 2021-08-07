@@ -8,6 +8,19 @@ class Op(Enum):
     ADD = 1
     DEL = 2
 
+    def __eq__(
+            self,
+            other: Enum,
+    ) -> bool:
+        """Comparison method.
+
+        :param other: the operation to compare this operation to
+        :type other: Enum (Op)
+        :returns: whether the other operation is equal to this operation
+        :rtype: bool
+        """
+        return self.value == other.value
+
 
 """Generics for Add and Search tokens."""
 AddToken = TypeVar('AddToken')
@@ -19,7 +32,3 @@ Update = Tuple[int, Op, int, str]
 
 """Type declaration for encrypted Libertas updates."""
 EncryptedUpdate = bytes
-
-"""Command line print values. Encapsulate text with these values to underline them."""
-underline_start = '\033[4m'
-underline_end = '\033[0m'

@@ -2,7 +2,7 @@
 from typing import List, Generic
 
 # Project imports
-from utils import AddToken, SrchToken
+from src.utils import AddToken, SrchToken
 
 
 class SigmaServer(Generic[AddToken, SrchToken]):

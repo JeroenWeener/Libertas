@@ -2,7 +2,7 @@
 from typing import Generic
 
 # Project imports
-from utils import AddToken, SrchToken
+from src.utils import AddToken, SrchToken
 
 
 class SigmaClient(Generic[AddToken, SrchToken]):

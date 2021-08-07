@@ -2,7 +2,7 @@
 from typing import Dict, List
 
 # Project imports
-from libertas.libertas_client import LibertasClient
+from src.libertas.libertas_client import LibertasClient
 from src.utils import EncryptedUpdate, Update, Op, AddToken
 
 

@@ -1,15 +1,15 @@
 # Python imports
 import sys
+from enum import Enum
 from typing import List
 
 # Project imports
-from libertas_plus.libertas_plus_client import LibertasPlusClient
-from libertas_plus.libertas_plus_server import LibertasPlusServer
+from src.libertas_plus.libertas_plus_client import LibertasPlusClient
+from src.libertas_plus.libertas_plus_server import LibertasPlusServer
 from src.libertas.libertas_client import LibertasClient
 from src.libertas.libertas_server import LibertasServer
 from src.zhao_nishide.zn_client import ZNClient
 from src.zhao_nishide.zn_server import ZNServer
-from utils import underline_start, underline_end
 
 """Implementations of:
 
@@ -24,6 +24,13 @@ Created: 15-07-2021
 """
 
 
+class CliSchemeOption(Enum):
+    """Enum representing the different options for SSE schemes."""
+    LIBERTAS_PLUS = 1
+    LIBERTAS = 2
+    ZHAO_AND_NISHIDE = 3
+
+
 class CLI(object):
     """An interactive command line interface to operate a SSE client-server pair. Supports Libertas, Libertas+ and
     Zhao & Nishide. Data is never actually send over a network. Rather, both client and server are instantiated in the
@@ -33,31 +40,45 @@ class CLI(object):
     def __init__(
             self,
     ) -> None:
-        """Initialize CLI: setup Libertas client and server.
+        """Initialize CLI. Set up user command strings.
 
         :returns: None
         :rtype: None
         """
         self.client = None
         self.server = None
-        self.scheme_string = None
+        self.scheme = None
 
-        # Easy access to printable command line options
-        self.add = underline_start + 'a' + underline_end + 'dd'
-        self.delete = underline_start + 'd' + underline_end + 'elete'
-        self.search = underline_start + 's' + underline_end + 'earch'
-        self.reselect = underline_start + 'r' + underline_end + 'eselect'
-        self.help = underline_start + 'h' + underline_end + 'elp'
-        self.quit = underline_start + 'q' + underline_end + 'uit'
+        # Easy access to user commands
+        self.add = '[a]dd'
+        self.delete = '[d]elete'
+        self.search = '[s]earch'
+        self.reselect = '[r]eselect'
+        self.help = '[h]elp'
+        self.quit = '[q]uit'
 
-        self.one = underline_start + '1' + underline_end
-        self.two = underline_start + '2' + underline_end
-        self.three = underline_start + '3' + underline_end
+        self.one = '[1]'
+        self.two = '[2]'
+        self.three = '[3]'
+
+    def start(
+            self,
+    ) -> None:
+        """Starts the CLI.
+
+        :returns: None
+        :rtype: None
+        """
+        # Query for which scheme to use
+        self.query_sse_scheme()
+
+        # Query input for the scheme
+        self.query_sse_input()
 
     def query_sse_scheme(
             self,
     ) -> None:
-        """Parses user input until a valid SSE scheme is selected
+        """Parses user input until a valid SSE scheme is selected.
 
         :returns: None
         :rtype: None
@@ -132,7 +153,7 @@ and \'*\' to indicate 0 or more characters'.format(self.search))
         :returns: None
         :rtype: None
         """
-        self.scheme_string = 'z&n'
+        self.scheme = CliSchemeOption.ZHAO_AND_NISHIDE
 
         # Client setup
         self.client = ZNClient()
@@ -150,7 +171,7 @@ and \'*\' to indicate 0 or more characters'.format(self.search))
         :returns: None
         :rtype: None
         """
-        self.scheme_string = 'libertas'
+        self.scheme = CliSchemeOption.LIBERTAS
 
         # Client setup
         sigma_client = ZNClient()
@@ -170,7 +191,7 @@ and \'*\' to indicate 0 or more characters'.format(self.search))
         :returns: None
         :rtype: None
         """
-        self.scheme_string = 'libertas+'
+        self.scheme = CliSchemeOption.LIBERTAS_PLUS
 
         # Client setup
         sigma_client = ZNClient()
@@ -193,7 +214,7 @@ and \'*\' to indicate 0 or more characters'.format(self.search))
         :returns: None
         :rtype: None
         """
-        error_string = 'Invalid command. Please use \'{0}\', \'{1}\', \'{2}\', \'{3}\', \'{4}\' or \'{5}\'.'\
+        error_string = 'Invalid command. Please use \'{0}\', \'{1}\', \'{2}\', \'{3}\', \'{4}\' or \'{5}\'.' \
             .format(self.add, self.delete, self.search, self.reselect, self.help, self.quit)
         input_parts = user_input.split()
         if len(input_parts) > 0:
@@ -283,12 +304,12 @@ and \'*\' to indicate 0 or more characters'.format(self.search))
             q = input_parts[1]
             srch_token = self.client.srch_token(q)
 
-            if self.scheme_string == 'z&n':
+            if self.scheme == CliSchemeOption.ZHAO_AND_NISHIDE:
                 results = self.server.search(srch_token)
             else:
                 encrypted_results = self.server.search(srch_token)
 
-                if self.scheme_string == 'libertas+':
+                if self.scheme == CliSchemeOption.LIBERTAS_PLUS:
                     (results, add_tokens) = self.client.dec_search(encrypted_results)
 
                     # Re-add document-keyword pairs
@@ -301,14 +322,3 @@ and \'*\' to indicate 0 or more characters'.format(self.search))
                 print('There are no matching documents.')
             else:
                 print('Matching document ids: ' + ''.join(list(map(lambda i: str(i) + ', ', results)))[:-2] + '.')
-
-
-def main(
-) -> None:
-    cli = CLI()
-    cli.query_sse_scheme()
-    cli.query_sse_input()
-
-
-if __name__ == '__main__':
-    main()
