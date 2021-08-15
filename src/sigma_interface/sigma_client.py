@@ -47,7 +47,7 @@ class SigmaClient(Generic[AddToken, SrchToken]):
 
     def add_token(
             self,
-            ind: bytes,
+            ind: int,
             w: str,
     ) -> AddToken:
         """Creates an add token for a document-keyword pair, to be send to the server.

@@ -29,6 +29,3 @@ SrchToken = TypeVar('SrchToken')
 
 """Type declaration for Libertas updates, (t, op, ind, w) tuples."""
 Update = Tuple[int, Op, int, str]
-
-"""Type declaration for encrypted Libertas updates."""
-EncryptedUpdate = bytes

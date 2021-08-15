@@ -220,6 +220,7 @@ if __name__ == '__main__':
             dump_document_keyword_pairs(dk_pairs)
         end_time = time.process_time()
         print('Done in ', end_time - start_time, 'seconds')
+        print()
 
         # Zhao and Nishide initialization
         start_time = time.process_time()
@@ -236,7 +237,7 @@ if __name__ == '__main__':
             print('Adding document-keyword pairs to Zhao and Nishide...')
             for i in range(len(dk_pairs)):
                 (d, k) = dk_pairs[i]
-                add_token = zn_client.add_token(int.to_bytes(d, byteorder='big', length=1), k)
+                add_token = zn_client.add_token(d, k)
                 zn_server.add(add_token)
                 if i % 1000 == 0:
                     progress = i / len(dk_pairs) * 100
@@ -245,6 +246,7 @@ if __name__ == '__main__':
             dump_zn(zn_client, zn_server)
         end_time = time.process_time()
         print('Done in', end_time - start_time, 'seconds')
+        print()
 
         # Libertas+ initialization
         start_time = time.process_time()
@@ -270,11 +272,12 @@ if __name__ == '__main__':
             dump_libertas(libertas_plus_client, libertas_plus_server)
         end_time = time.process_time()
         print('Done in', end_time - start_time, 'seconds')
+        print()
 
         # Search
         srch_token = zn_client.srch_token('development')
         results = zn_server.search(srch_token)
-        print(list(map(lambda result: int.from_bytes(result, byteorder='big'), results)))
+        print(results)
 
         srch_token = libertas_plus_client.srch_token('development')
         encrypted_results = libertas_plus_server.search(srch_token)

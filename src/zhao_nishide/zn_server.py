@@ -45,7 +45,7 @@ class ZNServer(SigmaServer[Tuple[bytes, bitarray, bytes], Tuple[List[int], List[
     def search(
             self,
             srch_token: (List[int], List[bytes]),
-    ) -> List[bytes]:
+    ) -> List[int]:
         """Searches the index for a query represented by a search token and returns matching document IDs.
         The first part of a search token consists of Bloom filter positions, one per element in s_t(q). The second part
         of a search token consists of hashes of these positions.
@@ -54,7 +54,7 @@ class ZNServer(SigmaServer[Tuple[bytes, bitarray, bytes], Tuple[List[int], List[
         :type srch_token: (List[int], List[bytes])
         :returns: A list containing the identifiers of matching documents and possibly some other documents, as the
         use of Bloom filters introduce false positives.
-        :rtype: List[bytes]
+        :rtype: List[int]
         """
         (td1s, td2s) = srch_token
         results = []
@@ -82,7 +82,7 @@ class ZNServer(SigmaServer[Tuple[bytes, bitarray, bytes], Tuple[List[int], List[
         :type srch_token: (List[int], List[bytes])
         :returns: A list containing the identifiers of matching documents and possibly some other documents, as the
         use of Bloom filters introduce false positives.
-        :rtype: List[bytes]
+        :rtype: List[int]
         """
         (td1s, td2s) = srch_token
         results = []
@@ -100,13 +100,13 @@ class ZNServer(SigmaServer[Tuple[bytes, bitarray, bytes], Tuple[List[int], List[
 
     def add(
             self,
-            add_token: (bytes, bitarray, bytes),
+            add_token: (int, bitarray, bytes),
     ) -> None:
         """Adds a document-keyword pair, represented by an add token, to the index.
         An add token consists of a document identifier, a Bloom filter and its ID.
 
         :param add_token: An add token representing a document-keyword pair
-        :type add_token: (bytes, bitarray, bytes)
+        :type add_token: (int, bitarray, bytes)
         :returns: None
         :rtype: None
         """

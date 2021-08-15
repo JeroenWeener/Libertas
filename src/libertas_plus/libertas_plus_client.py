@@ -3,7 +3,7 @@ from typing import Dict, List
 
 # Project imports
 from src.libertas.libertas_client import LibertasClient
-from src.utils import EncryptedUpdate, Update, Op, AddToken
+from src.utils import Update, Op, AddToken
 
 
 class LibertasPlusClient(LibertasClient):
@@ -16,7 +16,7 @@ class LibertasPlusClient(LibertasClient):
 
     def dec_search(
             self,
-            r_star: List[EncryptedUpdate],
+            r_star: List[int],
     ) -> (List[int], List[AddToken]):
         """Decrypts encrypted results received from the server and determines which document identifiers are still
         relevant for the query. Document identifiers are relevant when there is a keyword-document pair that is
@@ -27,7 +27,7 @@ class LibertasPlusClient(LibertasClient):
         for all document-keyword pairs.
 
         :param r_star: A list of encrypted results
-        :type r_star: List[bytes]
+        :type r_star: List[int]
         :returns: A list of document identifiers matching with the initial query and a list of add tokens to re-add
         relevant document-keyword pairs
         :rtype: List[int], List[AddTokens]

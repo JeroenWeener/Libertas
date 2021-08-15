@@ -72,18 +72,18 @@ class ZNClient(SigmaClient[Tuple[bytes, bitarray, bytes], Tuple[List[int], List[
 
     def add_token(
             self,
-            ind: bytes,
+            ind: int,
             w: str,
-    ) -> (bytes, bitarray, bytes):
+    ) -> (int, bitarray, bytes):
         """Creates an add token for a document-keyword pair, to be send to a Z&N server.
         Add tokens consist of the document identifier, Bloom filter and its ID.
 
         :param ind: The document identifier of the document-keyword pair to add
-        :type ind: bytes
+        :type ind: int
         :param w: The keyword of the document-keyword pair to add
         :type w: str
         :returns: An add token, a tuple consisting of a document identifier, Bloom filter and its ID
-        :rtype: (bytes, bitarray, bytes)
+        :rtype: (int, bitarray, bytes)
         """
         # Append the keyword with '\0' to indicate the end of the keyword
         s_k = self._s_k(w + '\0')
@@ -106,14 +106,14 @@ class ZNClient(SigmaClient[Tuple[bytes, bitarray, bytes], Tuple[List[int], List[
 
     def del_token(
             self,
-            ind: bytes,
+            ind: int,
             w: str,
     ) -> bytes:
         """Creates a delete token for a document-keyword pair, to be send to a Z&N server.
         A delete token is a Bloom filter ID.
 
         :param ind: The document identifier of the document-keyword pair to delete
-        :type ind: bytes
+        :type ind: int
         :param w: The keyword of the document-keyword pair to delete
         :type w: str
         :returns: A delete token, which is a Bloom filter ID
