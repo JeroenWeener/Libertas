@@ -1,14 +1,16 @@
 # Python imports
 import email
 import os
-import pandas as pd
-import pathlib
 import pickle
+import pathlib
 import re
 import string
 import time
 from email.message import Message
 from typing import List, Tuple, TextIO
+
+# Third-party imports
+import pandas as pd
 
 # Project imports
 from libertas_plus.libertas_plus_client import LibertasPlusClient

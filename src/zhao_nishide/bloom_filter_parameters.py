@@ -13,9 +13,9 @@ n : int
 p : float
     FP rate (0-1)
 
-n = 256     -\
-             |-> m ~ 1600
-p = 0.05    -/
+n = 64      -\
+             |-> m ~ 614
+p = 0.01    -/
 -----------------
 
 Number of hash functions
@@ -28,9 +28,9 @@ m : int
 n : int
     number of items expected to be stored in the Bloom filter
 
-m = 1600    -\
-             |-> ceil(k) = 5
-n = 256     -/
+m = 614    -\
+            |-> ceil(k) = 7
+n = 64     -/
 """
-BF_ARRAY_SIZE = 1600
-BF_HASH_FUNCTIONS = 5
+BF_ARRAY_SIZE = 614
+BF_HASH_FUNCTIONS = 7
