@@ -30,13 +30,48 @@ enron_file_path = '../../assets/emails.csv'
 dk_pairs_file_path = '../../generated/document_keyword_pairs.txt'
 client_dump_file_path = '../../generated/libertas_plus_client_dump'
 server_dump_file_path = '../../generated/libertas_plus_server_dump'
+zn_client_dump_file_path = '../../generated/zn_client_dump'
+zn_server_dump_file_path = '../../generated/zn_server_dump'
+
+
+def dump_zn(
+        client: ZNClient,
+        server: ZNServer,
+) -> None:
+    """Dumps the Zhao and Nishide client and server objects in files to be used for later use.
+
+    :param client: The Zhao and Nishide client to store in a file
+    :type client: ZNClient
+    :param server: The Zhao and Nishide server to store in a file
+    :type server: ZNServer
+    :returns: None
+    :rtype: None
+    """
+    with open(zn_client_dump_file_path, 'wb') as zn_client_dump_file:
+        pickle.dump(client, zn_client_dump_file)
+    with open(zn_server_dump_file_path, 'wb') as zn_server_dump_file:
+        pickle.dump(server, zn_server_dump_file)
+
+
+def load_zn(
+) -> Tuple[ZNClient, ZNServer]:
+    """Loads the Zhao and Nishide client and server objects from files.
+
+    :returns: Zhao and Nishide client and server
+    :rtype: Tuple[ZNClient, ZNServer]
+    """
+    with open(zn_client_dump_file_path, 'rb') as zn_client_dump_file:
+        client = pickle.load(zn_client_dump_file)
+    with open(zn_server_dump_file_path, 'rb') as zn_server_dump_file:
+        server = pickle.load(zn_server_dump_file)
+    return client, server
 
 
 def dump_libertas(
         client: LibertasPlusClient,
         server: LibertasPlusServer,
 ) -> None:
-    """Dumps the Libertas+ client and server objects in a file to be used for later use.
+    """Dumps the Libertas+ client and server objects in files to be used for later use.
 
     :param client: The Libertas+ client to store in a file
     :type client: LibertasPlusClient
@@ -105,7 +140,7 @@ def generate_document_keyword_pairs(
     :returns: The generated document-keyword pairs
     :rtype: List[Tuple[int, str]]
     """
-    input_rows = 1
+    input_rows = 100
     emails_df = pd.read_csv(enron_file_path, nrows=input_rows)
 
     # Prepare emails dataframe
@@ -186,6 +221,31 @@ if __name__ == '__main__':
         end_time = time.process_time()
         print('Done in ', end_time - start_time, 'seconds')
 
+        # Zhao and Nishide initialization
+        start_time = time.process_time()
+        if os.path.isfile(zn_client_dump_file_path) and os.path.isfile(zn_server_dump_file_path):
+            print('Restoring Zhao and Nishide...')
+            zn_client, zn_server = load_zn()
+        else:
+            print('Initializing Zhao and Nishide...')
+            zn_client = ZNClient()
+            zn_client.setup(2048)
+            zn_server = ZNServer()
+            zn_server.build_index()
+
+            print('Adding document-keyword pairs to Zhao and Nishide...')
+            for i in range(len(dk_pairs)):
+                (d, k) = dk_pairs[i]
+                add_token = zn_client.add_token(int.to_bytes(d, byteorder='big', length=1), k)
+                zn_server.add(add_token)
+                if i % 1000 == 0:
+                    progress = i / len(dk_pairs) * 100
+                    print(progress, '% in', time.process_time() - start_time, 'seconds')
+
+            dump_zn(zn_client, zn_server)
+        end_time = time.process_time()
+        print('Done in', end_time - start_time, 'seconds')
+
         # Libertas+ initialization
         start_time = time.process_time()
         if os.path.isfile(client_dump_file_path) and os.path.isfile(server_dump_file_path):
@@ -198,7 +258,7 @@ if __name__ == '__main__':
             libertas_plus_server = LibertasPlusServer(ZNServer())
             libertas_plus_server.build_index()
 
-            print('Adding document-keyword pairs to scheme...')
+            print('Adding document-keyword pairs to Libertas+...')
             for i in range(len(dk_pairs)):
                 (d, k) = dk_pairs[i]
                 add_token = libertas_plus_client.add_token(d, k)
@@ -212,6 +272,10 @@ if __name__ == '__main__':
         print('Done in', end_time - start_time, 'seconds')
 
         # Search
+        srch_token = zn_client.srch_token('development')
+        results = zn_server.search(srch_token)
+        print(list(map(lambda result: int.from_bytes(result, byteorder='big'), results)))
+
         srch_token = libertas_plus_client.srch_token('development')
         encrypted_results = libertas_plus_server.search(srch_token)
         results, _ = libertas_plus_client.dec_search(encrypted_results)
