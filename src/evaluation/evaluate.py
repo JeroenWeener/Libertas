@@ -1,8 +1,10 @@
 # Python imports
 import email
+import math
 import os
 import pickle
 import pathlib
+import random
 import re
 import string
 import time
@@ -18,7 +20,6 @@ from libertas_plus.libertas_plus_server import LibertasPlusServer
 from zhao_nishide.zn_client import ZNClient
 from zhao_nishide.zn_server import ZNServer
 
-
 """Libertas+ evaluation script
 
 Enron dataset .csv file can be found at:
@@ -28,6 +29,7 @@ Put the file in `/assets` before running this script.
 
 enron_file_path = '../../assets/emails.csv'
 dk_pairs_file_path = '../../generated/document_keyword_pairs.txt'
+queries_file_path = '../../generated/queries.txt'
 client_dump_file_path = '../../generated/libertas_plus_client_dump'
 server_dump_file_path = '../../generated/libertas_plus_server_dump'
 zn_client_dump_file_path = '../../generated/zn_client_dump'
@@ -98,6 +100,32 @@ def load_libertas(
     with open(server_dump_file_path, 'rb') as libertas_server_dump_file:
         server = pickle.load(libertas_server_dump_file)
     return client, server
+
+
+def dump_queries(
+        queries: List[str],
+) -> None:
+    """Writes queries to a file.
+
+    :param queries: Queries
+    :type queries: List[str]
+    :returns: None
+    :rtype: None
+    """
+    file: TextIO = open(queries_file_path, 'w')
+    for query in queries:
+        file.write(query + '\n')
+
+
+def load_queries(
+) -> List[str]:
+    """Read queries from a file.
+
+    :returns: A list of queries
+    :rtype: List[str]
+    """
+    file: TextIO = open(queries_file_path, 'r')
+    return file.read().split('\n')[:-1]
 
 
 def dump_document_keyword_pairs(
@@ -202,7 +230,68 @@ def get_text_from_email(
     return ''.join(message_parts)
 
 
-if __name__ == '__main__':
+def generate_queries(
+        keywords: List[str],
+) -> List[str]:
+    """Generates queries based off a list of keywords.
+
+    Queries are generated as follows:
+    - Decide the number of wildcards randomly from 0 to ceil(l/5), where l is the length of the keyword
+    - If there should be n wildcards, divide the keyword in n equal parts
+    - for every part, pick a random position and a random wildcard (_ or *)
+        - for every _ wildcard, replace the character at the position with _
+        - for every * wildcard, insert the * wildcard between characters at the position
+    - consume a random number of characters left and right of * wildcards, considering the intermediate query as a
+      whole
+
+    :param keywords: A list of keywords to generate queries from
+    :type keywords: List[str]
+    :returns: A list of queries
+    :rtype: List[str]
+    """
+    queries = []
+    for keyword in keywords:
+        number_of_wildcards = random.randint(0, math.ceil(len(keyword) / 5))
+        if number_of_wildcards == 0:
+            queries.append(keyword)
+        else:
+            part_length = math.ceil(len(keyword) / number_of_wildcards)
+            parts = [keyword[n:n + part_length] for n in range(0, len(keyword), part_length)]
+            query = ''
+            for part in parts:
+                wildcard_type = random.randint(0, 1)
+                if wildcard_type == 0:
+                    position = random.randint(0, len(part) - 1)
+                    part = part[:position] + '_' + part[position + 1:]
+                else:
+                    position = random.randint(0, len(part))
+                    part = part[:position] + '*' + part[position:]
+                query += part
+
+            # Consume a random number of characters surrounding * wildcards
+            xs = query.split('*')
+            for i in range(0, len(xs) - 1):
+                left = xs[i]
+                wildcard_index = left.find('_')
+                left = left[:random.randint(wildcard_index + 1, len(left))]
+
+                right = xs[i + 1]
+                wildcard_index = right.find('_')
+                if wildcard_index == -1:
+                    right = right[random.randint(0, len(right)):]
+                else:
+                    right = right[random.randint(0, wildcard_index):]
+
+                xs = xs[:i] + [left] + [right] + xs[i + 2:]
+
+            query = '*'.join(xs)
+            queries.append(query)
+
+    return queries
+
+
+def start_evaluation(
+) -> None:
     if not os.path.isfile(enron_file_path):
         print('Error: \'/assets/emails.csv\' is not present. Please download the file before running this script.')
     else:
@@ -220,6 +309,19 @@ if __name__ == '__main__':
             dump_document_keyword_pairs(dk_pairs)
         end_time = time.process_time()
         print('Done in ', end_time - start_time, 'seconds')
+        print()
+
+        # Query generation
+        start_time = time.process_time()
+        if os.path.isfile(queries_file_path):
+            print('Loading queries in memory...')
+            queries = load_queries()
+        else:
+            print('Generating queries from document-keyword pairs')
+            queries = generate_queries(list(set(map(lambda pair: pair[1], dk_pairs))))
+            dump_queries(queries)
+        end_time = time.process_time()
+        print('Done in', end_time - start_time, 'seconds')
         print()
 
         # Zhao and Nishide initialization
@@ -283,3 +385,12 @@ if __name__ == '__main__':
         encrypted_results = libertas_plus_server.search(srch_token)
         results, _ = libertas_plus_client.dec_search(encrypted_results)
         print(results)
+
+
+if __name__ == '__main__':
+    start_evaluation()
+    # q = generate_queries(
+    #     ['testtest', 'testtest', 'testtest', 'testtest', 'testtest', 'testtest', 'testtest', 'testtest',
+    #      'testtest', 'testtest', 'testtest', 'testtest', 'testtest', 'testtest', 'testtest', 'testtest',
+    #      'testtest', 'testtest', 'testtest', 'testtest', 'testtest', 'testtest', 'testtest', 'testtest', ])
+    # print(q)
