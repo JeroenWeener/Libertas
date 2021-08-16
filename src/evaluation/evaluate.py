@@ -292,6 +292,16 @@ def generate_queries(
 
 def start_evaluation(
 ) -> None:
+    """Generates document-keyword pairs and a query set. Then, it adds all document-keyword pairs to a fresh ZN scheme
+    and Libertas+ scheme. Using the query set, it queries both schemes and measures the time it takes for them to
+    complete.
+
+    Intermediate variables such as document-keyword pairs, the query set and the schemes themselves are saved to the
+    '/generated' folder so they are only generated one time.
+
+    :returns: None
+    :rtype: None
+    """
     if not os.path.isfile(enron_file_path):
         print('Error: \'/assets/emails.csv\' is not present. Please download the file before running this script.')
     else:
@@ -299,38 +309,32 @@ def start_evaluation(
         pathlib.Path('../../generated').mkdir(parents=True, exist_ok=True)
 
         # Document-keyword pairs generation
-        start_time = time.process_time()
         if os.path.isfile(dk_pairs_file_path):
-            print('Loading document-keyword pairs in memory...')
+            print('Document-keyword pairs found. Loading them into memory...')
             dk_pairs = load_document_keyword_pairs()
         else:
             print('Generating document-keyword pairs from Enron dataset...')
             dk_pairs = generate_document_keyword_pairs()
             dump_document_keyword_pairs(dk_pairs)
-        end_time = time.process_time()
-        print('Done in ', end_time - start_time, 'seconds')
         print()
 
         # Query generation
-        start_time = time.process_time()
         if os.path.isfile(queries_file_path):
-            print('Loading queries in memory...')
+            print('Query set found. Loading them into memory...')
             queries = load_queries()
         else:
-            print('Generating queries from document-keyword pairs')
+            print('Generating query set from document-keyword pairs...')
             queries = generate_queries(list(set(map(lambda pair: pair[1], dk_pairs))))
             dump_queries(queries)
-        end_time = time.process_time()
-        print('Done in', end_time - start_time, 'seconds')
         print()
 
         # Zhao and Nishide initialization
         start_time = time.process_time()
         if os.path.isfile(zn_client_dump_file_path) and os.path.isfile(zn_server_dump_file_path):
-            print('Restoring Zhao and Nishide...')
+            print('Zhao & Nishide save found. Restoring...')
             zn_client, zn_server = load_zn()
         else:
-            print('Initializing Zhao and Nishide...')
+            print('Initializing Zhao & Nishide...')
             zn_client = ZNClient()
             zn_client.setup(2048)
             zn_server = ZNServer()
@@ -343,17 +347,17 @@ def start_evaluation(
                 zn_server.add(add_token)
                 if i % 1000 == 0:
                     progress = i / len(dk_pairs) * 100
-                    print(progress, '% in', time.process_time() - start_time, 'seconds')
-
+                    print('{:.1f}% in {:.1f} seconds'.format(progress, time.process_time() - start_time))
             dump_zn(zn_client, zn_server)
+
         end_time = time.process_time()
-        print('Done in', end_time - start_time, 'seconds')
+        print('Done in {:.1f} seconds'.format(end_time - start_time))
         print()
 
         # Libertas+ initialization
         start_time = time.process_time()
         if os.path.isfile(client_dump_file_path) and os.path.isfile(server_dump_file_path):
-            print('Restoring Libertas+...')
+            print('Libertas+ save found. Restoring...')
             libertas_plus_client, libertas_plus_server = load_libertas()
         else:
             print('Initializing Libertas+...')
@@ -369,28 +373,46 @@ def start_evaluation(
                 libertas_plus_server.add(add_token)
                 if i % 1000 == 0:
                     progress = i / len(dk_pairs) * 100
-                    print(progress, '% in', time.process_time() - start_time, 'seconds')
-
+                    print('{:.1f}, % in {:.1f} seconds'.format(progress, time.process_time() - start_time))
             dump_libertas(libertas_plus_client, libertas_plus_server)
+
         end_time = time.process_time()
-        print('Done in', end_time - start_time, 'seconds')
+        print('Done in {:.1f} seconds'.format(end_time - start_time))
         print()
 
-        # Search
-        srch_token = zn_client.srch_token('development')
-        results = zn_server.search(srch_token)
-        print(results)
+        # Search Z&N
+        print('Evaluating search times for Zhao & Nishide...')
+        total_time = 0
+        for query in queries:
+            start_time = time.process_time()
 
-        srch_token = libertas_plus_client.srch_token('development')
-        encrypted_results = libertas_plus_server.search(srch_token)
-        results, _ = libertas_plus_client.dec_search(encrypted_results)
-        print(results)
+            srch_token = zn_client.srch_token(query)
+            zn_server.search(srch_token)
+
+            end_time = time.process_time()
+            total_time += end_time - start_time
+
+        print('Searching Zhao & Nishide took {:.1f} seconds'.format(total_time))
+        print()
+
+        # Search Libertas+
+        print('Evaluating search times for Libertas+...')
+        total_time = 0
+        for query in queries:
+            start_time = time.process_time()
+
+            srch_token = libertas_plus_client.srch_token(query)
+            encrypted_results = libertas_plus_server.search(srch_token)
+            _, add_tokens = libertas_plus_client.dec_search(encrypted_results)
+            for add_token in add_tokens:
+                libertas_plus_server.add(add_token)
+
+            end_time = time.process_time()
+            total_time += end_time - start_time
+
+        print('Searching Libertas+ took {:.1f} seconds'.format(total_time))
+        print()
 
 
 if __name__ == '__main__':
     start_evaluation()
-    # q = generate_queries(
-    #     ['testtest', 'testtest', 'testtest', 'testtest', 'testtest', 'testtest', 'testtest', 'testtest',
-    #      'testtest', 'testtest', 'testtest', 'testtest', 'testtest', 'testtest', 'testtest', 'testtest',
-    #      'testtest', 'testtest', 'testtest', 'testtest', 'testtest', 'testtest', 'testtest', 'testtest', ])
-    # print(q)
