@@ -1,6 +1,6 @@
 # Python imports
+import math
 import os
-from math import log
 from typing import Dict, List
 
 # Project imports
@@ -173,7 +173,8 @@ class LibertasClient(object):
         :returns: The (t, op, ind, w) tuple
         :rtype: Update
         """
-        byte_length = int(log(cipher_text, 256)) + 1
+        # Ensure byte alignment of 16 because of CBC mode
+        byte_length = math.ceil(math.log(cipher_text, 2) / 8 / 16) * 16
         cipher_text_bytes = int.to_bytes(cipher_text, byteorder='big', length=byte_length)
         update_str = decrypt(self.k, cipher_text_bytes)
         (t, op, ind, w) = update_str.split(',')
