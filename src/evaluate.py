@@ -9,7 +9,7 @@ import re
 import string
 import time
 from email.message import Message
-from typing import List, Tuple, TextIO
+from typing import List, Tuple, TextIO, Dict
 
 # Third-party imports
 import pandas as pd
@@ -27,18 +27,35 @@ https://www.kaggle.com/yairishalev/enron-top-words-freq-in-emails-subjects-and-b
 Put the file in `/assets` before running this script.
 """
 
-enron_file_path = '../../assets/emails.csv'
-dk_pairs_file_path = '../../generated/document_keyword_pairs.txt'
-queries_file_path = '../../generated/queries.txt'
-client_dump_file_path = '../../generated/libertas_plus_client_dump'
-server_dump_file_path = '../../generated/libertas_plus_server_dump'
-zn_client_dump_file_path = '../../generated/zn_client_dump'
-zn_server_dump_file_path = '../../generated/zn_server_dump'
+enron_file_path = '../assets/emails.csv'
+dk_pairs_file_path = '../generated/document_keyword_pairs.txt'
+queries_file_path = '../generated/queries_'
+client_dump_file_path = '../generated/scheme_dumps/libertas_plus_client_dump_'
+server_dump_file_path = '../generated/scheme_dumps/libertas_plus_server_dump_'
+zn_client_dump_file_path = '../generated/scheme_dumps/zn_client_dump_'
+zn_server_dump_file_path = '../generated/scheme_dumps/zn_server_dump_'
+results_dump_file_path = '../generated/results'
+
+
+def dump_results(
+        results: Dict,
+) -> None:
+    """Dumps measurement results to a file.
+
+    :param results: The results to dump. Contains search time taken per data set size, per scheme
+    :type results: Dict
+    :returns: None
+    :rtype: None
+    """
+    with open(results_dump_file_path, 'w') as results_dump_file:
+        for key in results.keys():
+            results_dump_file.write(key + ': ' + str(results[key]) + '\n')
 
 
 def dump_zn(
         client: ZNClient,
         server: ZNServer,
+        data_size: int,
 ) -> None:
     """Dumps the Zhao and Nishide client and server objects in files to be used for later use.
 
@@ -46,25 +63,30 @@ def dump_zn(
     :type client: ZNClient
     :param server: The Zhao and Nishide server to store in a file
     :type server: ZNServer
+    :param data_size: The number of items stored in the server's index.
+    :type data_size: int
     :returns: None
     :rtype: None
     """
-    with open(zn_client_dump_file_path, 'wb') as zn_client_dump_file:
+    with open(zn_client_dump_file_path + str(data_size), 'wb') as zn_client_dump_file:
         pickle.dump(client, zn_client_dump_file)
-    with open(zn_server_dump_file_path, 'wb') as zn_server_dump_file:
+    with open(zn_server_dump_file_path + str(data_size), 'wb') as zn_server_dump_file:
         pickle.dump(server, zn_server_dump_file)
 
 
 def load_zn(
+        data_size: int,
 ) -> Tuple[ZNClient, ZNServer]:
     """Loads the Zhao and Nishide client and server objects from files.
 
+    :param data_size: The number of items stored in the server's index.
+    :type data_size: int
     :returns: Zhao and Nishide client and server
     :rtype: Tuple[ZNClient, ZNServer]
     """
-    with open(zn_client_dump_file_path, 'rb') as zn_client_dump_file:
+    with open(zn_client_dump_file_path + str(data_size), 'rb') as zn_client_dump_file:
         client = pickle.load(zn_client_dump_file)
-    with open(zn_server_dump_file_path, 'rb') as zn_server_dump_file:
+    with open(zn_server_dump_file_path + str(data_size), 'rb') as zn_server_dump_file:
         server = pickle.load(zn_server_dump_file)
     return client, server
 
@@ -72,6 +94,7 @@ def load_zn(
 def dump_libertas(
         client: LibertasPlusClient,
         server: LibertasPlusServer,
+        data_size: int,
 ) -> None:
     """Dumps the Libertas+ client and server objects in files to be used for later use.
 
@@ -79,52 +102,63 @@ def dump_libertas(
     :type client: LibertasPlusClient
     :param server: The Libertas+ server to store in a file
     :type server: LibertasPlusServer
+    :param data_size: The number of items stored in the server's index.
+    :type data_size: int
     :returns: None
     :rtype: None
     """
-    with open(client_dump_file_path, 'wb') as libertas_client_dump_file:
+    with open(client_dump_file_path + str(data_size), 'wb') as libertas_client_dump_file:
         pickle.dump(client, libertas_client_dump_file)
-    with open(server_dump_file_path, 'wb') as libertas_server_dump_file:
+    with open(server_dump_file_path + str(data_size), 'wb') as libertas_server_dump_file:
         pickle.dump(server, libertas_server_dump_file)
 
 
 def load_libertas(
+        data_size: int,
 ) -> Tuple[LibertasPlusClient, LibertasPlusServer]:
     """Loads the Libertas+ client and server objects from files.
 
+    :param data_size: The number of items stored in the server's index
+    :type data_size: int
     :returns: Libertas+ client and server
     :rtype: Tuple[LibertasPlusClient, LibertasPlusServer]
     """
-    with open(client_dump_file_path, 'rb') as libertas_client_dump_file:
+    with open(client_dump_file_path + str(data_size), 'rb') as libertas_client_dump_file:
         client = pickle.load(libertas_client_dump_file)
-    with open(server_dump_file_path, 'rb') as libertas_server_dump_file:
+    with open(server_dump_file_path + str(data_size), 'rb') as libertas_server_dump_file:
         server = pickle.load(libertas_server_dump_file)
     return client, server
 
 
 def dump_queries(
         queries: List[str],
+        data_size: int,
 ) -> None:
     """Writes queries to a file.
 
     :param queries: Queries
     :type queries: List[str]
+    :param data_size: The number of queries
+    :type data_size: int
     :returns: None
     :rtype: None
     """
-    file: TextIO = open(queries_file_path, 'w')
+    file: TextIO = open(queries_file_path + str(data_size), 'w')
     for query in queries:
         file.write(query + '\n')
 
 
 def load_queries(
+        data_size: int,
 ) -> List[str]:
     """Read queries from a file.
 
+    :param data_size: The number of queries
+    :type data_size: int
     :returns: A list of queries
     :rtype: List[str]
     """
-    file: TextIO = open(queries_file_path, 'r')
+    file: TextIO = open(queries_file_path + str(data_size), 'r')
     return file.read().split('\n')[:-1]
 
 
@@ -161,15 +195,17 @@ def load_document_keyword_pairs(
 
 
 def generate_document_keyword_pairs(
+        number_of_emails: int,
 ) -> List[Tuple[int, str]]:
     """Generates document-keyword pairs for the emails in the Enron data set. Emails are considered documents and the
     words in their content are considered keywords.
 
+    :param number_of_emails: The number of emails to consider from the Enron data set
+    :type number_of_emails: int
     :returns: The generated document-keyword pairs
     :rtype: List[Tuple[int, str]]
     """
-    input_rows = 100
-    emails_df = pd.read_csv(enron_file_path, nrows=input_rows)
+    emails_df = pd.read_csv(enron_file_path, nrows=number_of_emails)
 
     # Prepare emails dataframe
     messages = list(map(email.message_from_string, emails_df['message']))
@@ -180,7 +216,7 @@ def generate_document_keyword_pairs(
 
     # Generate document-keyword pairs
     document_keyword_pairs = []
-    for email_index in range(1, input_rows):
+    for email_index in range(1, number_of_emails):
         if emails_df['X-Folder'][email_index] and 'sent' in emails_df['X-Folder'][email_index]:
             content = parse_text(emails_df['content'][email_index])
             subject = parse_text(emails_df['Subject'][email_index])
@@ -306,7 +342,7 @@ def start_evaluation(
         print('Error: \'/assets/emails.csv\' is not present. Please download the file before running this script.')
     else:
         # Create '/generated' folder
-        pathlib.Path('../../generated').mkdir(parents=True, exist_ok=True)
+        pathlib.Path('../generated/scheme_dumps').mkdir(parents=True, exist_ok=True)
 
         # Document-keyword pairs generation
         if os.path.isfile(dk_pairs_file_path):
@@ -314,104 +350,117 @@ def start_evaluation(
             dk_pairs = load_document_keyword_pairs()
         else:
             print('Generating document-keyword pairs from Enron dataset...')
-            dk_pairs = generate_document_keyword_pairs()
+            dk_pairs = generate_document_keyword_pairs(1000)
             dump_document_keyword_pairs(dk_pairs)
-        print()
 
-        # Query generation
-        if os.path.isfile(queries_file_path):
-            print('Query set found. Loading them into memory...')
-            queries = load_queries()
-        else:
-            print('Generating query set from document-keyword pairs...')
-            queries = generate_queries(list(set(map(lambda pair: pair[1], dk_pairs))))
-            dump_queries(queries)
-        print()
+        # Measurements
+        data_sizes = [10, 100, 1000, 10000]
+        results = {}
 
-        # Zhao and Nishide initialization
-        start_time = time.process_time()
-        if os.path.isfile(zn_client_dump_file_path) and os.path.isfile(zn_server_dump_file_path):
-            print('Zhao & Nishide save found. Restoring...')
-            zn_client, zn_server = load_zn()
-        else:
-            print('Initializing Zhao & Nishide...')
-            zn_client = ZNClient()
-            zn_client.setup(2048)
-            zn_server = ZNServer()
-            zn_server.build_index()
+        for data_size in data_sizes:
+            print()
+            print('--- Data size:', data_size, '---')
 
-            print('Adding document-keyword pairs to Zhao and Nishide...')
-            for i in range(len(dk_pairs)):
-                (d, k) = dk_pairs[i]
-                add_token = zn_client.add_token(d, k)
-                zn_server.add(add_token)
-                if i % 1000 == 0:
-                    progress = i / len(dk_pairs) * 100
-                    print('{:.1f}% in {:.1f} seconds'.format(progress, time.process_time() - start_time))
-            dump_zn(zn_client, zn_server)
+            # Query generation
+            if os.path.isfile(queries_file_path + str(data_size)):
+                print('Query set found. Loading them into memory...')
+                queries = load_queries(data_size)
+            else:
+                print('Generating query set from document-keyword pairs...')
+                queries = generate_queries(list(set(map(lambda pair: pair[1], dk_pairs[:data_size]))))
+                dump_queries(queries, data_size)
+            print()
 
-        end_time = time.process_time()
-        print('Done in {:.1f} seconds'.format(end_time - start_time))
-        print()
-
-        # Libertas+ initialization
-        start_time = time.process_time()
-        if os.path.isfile(client_dump_file_path) and os.path.isfile(server_dump_file_path):
-            print('Libertas+ save found. Restoring...')
-            libertas_plus_client, libertas_plus_server = load_libertas()
-        else:
-            print('Initializing Libertas+...')
-            libertas_plus_client = LibertasPlusClient(ZNClient())
-            libertas_plus_client.setup((256, 2048))
-            libertas_plus_server = LibertasPlusServer(ZNServer())
-            libertas_plus_server.build_index()
-
-            print('Adding document-keyword pairs to Libertas+...')
-            for i in range(len(dk_pairs)):
-                (d, k) = dk_pairs[i]
-                add_token = libertas_plus_client.add_token(d, k)
-                libertas_plus_server.add(add_token)
-                if i % 1000 == 0:
-                    progress = i / len(dk_pairs) * 100
-                    print('{:.1f}, % in {:.1f} seconds'.format(progress, time.process_time() - start_time))
-            dump_libertas(libertas_plus_client, libertas_plus_server)
-
-        end_time = time.process_time()
-        print('Done in {:.1f} seconds'.format(end_time - start_time))
-        print()
-
-        # Search Z&N
-        print('Evaluating search times for Zhao & Nishide...')
-        total_time = 0
-        for query in queries:
+            # Zhao and Nishide initialization
             start_time = time.process_time()
+            if os.path.isfile(zn_client_dump_file_path + str(data_size)) and os.path.isfile(zn_server_dump_file_path +
+                                                                                            str(data_size)):
+                print('Zhao & Nishide save found. Restoring...')
+                zn_client, zn_server = load_zn(data_size)
+            else:
+                print('Initializing Zhao & Nishide...')
+                zn_client = ZNClient()
+                zn_client.setup(2048)
+                zn_server = ZNServer()
+                zn_server.build_index()
 
-            srch_token = zn_client.srch_token(query)
-            zn_server.search(srch_token)
+                print('Adding', data_size, 'document-keyword pairs to Zhao and Nishide...')
+                for i in range(data_size):
+                    (d, k) = dk_pairs[i]
+                    add_token = zn_client.add_token(d, k)
+                    zn_server.add(add_token)
+                    if i % 100 == 0:
+                        progress = i / data_size * 100
+                        print('{:.1f}% in {:.1f} seconds'.format(progress, time.process_time() - start_time))
+                dump_zn(zn_client, zn_server, data_size)
 
             end_time = time.process_time()
-            total_time += end_time - start_time
+            print('Done in {:.1f} seconds'.format(end_time - start_time))
+            print()
 
-        print('Searching Zhao & Nishide took {:.1f} seconds'.format(total_time))
-        print()
-
-        # Search Libertas+
-        print('Evaluating search times for Libertas+...')
-        total_time = 0
-        for query in queries:
+            # Libertas+ initialization
             start_time = time.process_time()
+            if os.path.isfile(client_dump_file_path + str(data_size)) and os.path.isfile(server_dump_file_path +
+                                                                                         str(data_size)):
+                print('Libertas+ save found. Restoring...')
+                libertas_plus_client, libertas_plus_server = load_libertas(data_size)
+            else:
+                print('Initializing Libertas+...')
+                libertas_plus_client = LibertasPlusClient(ZNClient())
+                libertas_plus_client.setup((256, 2048))
+                libertas_plus_server = LibertasPlusServer(ZNServer())
+                libertas_plus_server.build_index()
 
-            srch_token = libertas_plus_client.srch_token(query)
-            encrypted_results = libertas_plus_server.search(srch_token)
-            _, add_tokens = libertas_plus_client.dec_search(encrypted_results)
-            for add_token in add_tokens:
-                libertas_plus_server.add(add_token)
+                print('Adding', data_size, 'document-keyword pairs to Libertas+...')
+                for i in range(data_size):
+                    (d, k) = dk_pairs[i]
+                    add_token = libertas_plus_client.add_token(d, k)
+                    libertas_plus_server.add(add_token)
+                    if i % 100 == 0:
+                        progress = i / data_size * 100
+                        print('{:.1f}% in {:.1f} seconds'.format(progress, time.process_time() - start_time))
+                dump_libertas(libertas_plus_client, libertas_plus_server, data_size)
 
             end_time = time.process_time()
-            total_time += end_time - start_time
+            print('Done in {:.1f} seconds'.format(end_time - start_time))
+            print()
 
-        print('Searching Libertas+ took {:.1f} seconds'.format(total_time))
-        print()
+            # Search Z&N
+            print('Evaluating search times for Zhao & Nishide...')
+            total_time = 0
+            for query in queries[:data_size]:
+                start_time = time.process_time()
+
+                srch_token = zn_client.srch_token(query)
+                zn_server.search(srch_token)
+
+                end_time = time.process_time()
+                total_time += end_time - start_time
+
+            results['zn_' + str(data_size)] = total_time
+            dump_results(results)
+            print('Searching Zhao & Nishide took {:.1f} seconds'.format(total_time))
+            print()
+
+            # Search Libertas+
+            print('Evaluating search times for Libertas+...')
+            total_time = 0
+            for query in queries[:data_size]:
+                start_time = time.process_time()
+
+                srch_token = libertas_plus_client.srch_token(query)
+                encrypted_results = libertas_plus_server.search(srch_token)
+                _, add_tokens = libertas_plus_client.dec_search(encrypted_results)
+                for add_token in add_tokens:
+                    libertas_plus_server.add(add_token)
+
+                end_time = time.process_time()
+                total_time += end_time - start_time
+
+            results['libertas+_' + str(data_size)] = total_time
+            dump_results(results)
+            print('Searching Libertas+ took {:.1f} seconds'.format(total_time))
+            print()
 
 
 if __name__ == '__main__':
