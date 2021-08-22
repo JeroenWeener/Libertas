@@ -1,7 +1,7 @@
 """Bloom filter parameters.
 
 The parameters depend on the use case. Lower FP rates and longer keywords require more bits.
-Suppose we have keywords w with length 15. Then, S_K(w) will contain 256 elements. We set the FP rate to 0.05.
+Suppose we have keywords w with length 7. Then, S_K(w) will contain 64 elements. We set the FP rate to 0.01.
 
 Bloom filter size
 -----------------
