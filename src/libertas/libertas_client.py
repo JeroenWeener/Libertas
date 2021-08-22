@@ -120,6 +120,9 @@ class LibertasClient(object):
             # Unpack entry (see utils.Update)
             (t, op, ind, w) = update
 
+            if w not in keyword_documents_dict:
+                keyword_documents_dict[w] = []
+
             documents_list: List[int] = keyword_documents_dict[w]
             if op == Op.ADD and ind not in documents_list:
                 # Add ind to the results for this keyword
