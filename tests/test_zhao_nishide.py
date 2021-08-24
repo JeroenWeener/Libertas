@@ -2,7 +2,6 @@
 import unittest
 
 # Project imports
-from src.zhao_nishide.bloom_filter_parameters import BF_HASH_FUNCTIONS
 from src.zhao_nishide.zn_client import ZNClient
 from src.zhao_nishide.zn_server import ZNServer
 
@@ -11,11 +10,11 @@ class TestSetup(unittest.TestCase):
     def test_setup(self):
         security_parameter = 2048
 
-        client = ZNClient()
+        client = ZNClient(.01, 6)
         client.setup(security_parameter)
         (k_h, k_g) = client.k
 
-        self.assertEqual(BF_HASH_FUNCTIONS, len(k_h))
+        self.assertEqual(client.bf_hash_functions, len(k_h))
         for k in k_h:
             self.assertEqual(security_parameter // 8, len(k))
         self.assertEqual(security_parameter // 8, len(k_g))
@@ -28,7 +27,7 @@ class TestSetup(unittest.TestCase):
 
 class TestAdd(unittest.TestCase):
     def setUp(self):
-        self.client = ZNClient()
+        self.client = ZNClient(.01, 6)
         self.client.setup(2048)
         self.server = ZNServer()
         self.server.build_index()
@@ -55,7 +54,7 @@ class TestAdd(unittest.TestCase):
 
 class TestDelete(unittest.TestCase):
     def setUp(self):
-        self.client = ZNClient()
+        self.client = ZNClient(.01, 6)
         self.client.setup(2048)
         self.server = ZNServer()
         self.server.build_index()
@@ -96,7 +95,7 @@ class TestDelete(unittest.TestCase):
 
 class TestSearch(unittest.TestCase):
     def setUp(self):
-        self.client = ZNClient()
+        self.client = ZNClient(.01, 10)
         self.client.setup(2048)
         self.server = ZNServer()
         self.server.build_index()
@@ -245,7 +244,7 @@ class TestSearch(unittest.TestCase):
 
 class TestSearchAndDelete(unittest.TestCase):
     def setUp(self):
-        self.client = ZNClient()
+        self.client = ZNClient(.01, 4)
         self.client.setup(2048)
         self.server = ZNServer()
         self.server.build_index()

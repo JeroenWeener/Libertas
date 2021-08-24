@@ -34,7 +34,7 @@ client_dump_file_path = '../generated/scheme_dumps/libertas_plus_client_dump_'
 server_dump_file_path = '../generated/scheme_dumps/libertas_plus_server_dump_'
 zn_client_dump_file_path = '../generated/scheme_dumps/zn_client_dump_'
 zn_server_dump_file_path = '../generated/scheme_dumps/zn_server_dump_'
-results_dump_file_path = '../generated/results'
+results_dump_file_path = '../generated/results.txt'
 
 
 def dump_results(
@@ -143,7 +143,7 @@ def dump_queries(
     :returns: None
     :rtype: None
     """
-    file: TextIO = open(queries_file_path + str(data_size), 'w')
+    file: TextIO = open(queries_file_path + str(data_size) + '.txt', 'w')
     for query in queries:
         file.write(query + '\n')
 
@@ -158,7 +158,7 @@ def load_queries(
     :returns: A list of queries
     :rtype: List[str]
     """
-    file: TextIO = open(queries_file_path + str(data_size), 'r')
+    file: TextIO = open(queries_file_path + str(data_size) + '.txt', 'r')
     return file.read().split('\n')[:-1]
 
 

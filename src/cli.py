@@ -156,7 +156,7 @@ and \'*\' to indicate 0 or more characters'.format(self.search))
         self.scheme = CliSchemeOption.ZHAO_AND_NISHIDE
 
         # Client setup
-        self.client = ZNClient()
+        self.client = ZNClient(.01, 10)
         self.client.setup(2048)
 
         # Server setup
@@ -174,7 +174,7 @@ and \'*\' to indicate 0 or more characters'.format(self.search))
         self.scheme = CliSchemeOption.LIBERTAS
 
         # Client setup
-        sigma_client = ZNClient()
+        sigma_client = ZNClient(.01, 10)
         self.client = LibertasClient(sigma_client)
         self.client.setup((256, 2048))
 
@@ -194,7 +194,7 @@ and \'*\' to indicate 0 or more characters'.format(self.search))
         self.scheme = CliSchemeOption.LIBERTAS_PLUS
 
         # Client setup
-        sigma_client = ZNClient()
+        sigma_client = ZNClient(.01, 10)
         self.client = LibertasPlusClient(sigma_client)
         self.client.setup((256, 2048))
 
