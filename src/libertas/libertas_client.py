@@ -101,7 +101,7 @@ class LibertasClient(object):
     def dec_search(
             self,
             r_star: List[int],
-    ) -> (List[int], List[AddToken]):
+    ) -> List[int]:
         """Decrypts encrypted results received from the server and determines which document identifiers are still
         relevant for the query. Document identifiers are relevant when there is a keyword-document pair that is
         added, but not deleted afterwards.

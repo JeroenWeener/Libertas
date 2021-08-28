@@ -25,7 +25,6 @@ class LibertasServer(object):
         :rtype: None
         """
         self.sigma: SigmaServer = sigma
-        self.index = None
 
     def build_index(
             self,
