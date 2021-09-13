@@ -4,8 +4,6 @@ from enum import Enum
 from typing import List
 
 # Project imports
-from src.libertas_plus.libertas_plus_client import LibertasPlusClient
-from src.libertas_plus.libertas_plus_server import LibertasPlusServer
 from src.libertas.libertas_client import LibertasClient
 from src.libertas.libertas_server import LibertasServer
 from src.zhao_nishide.zn_client import ZNClient
@@ -15,7 +13,6 @@ from src.zhao_nishide.zn_server import ZNServer
 
 Zhao & Nishide: a DSSE scheme supporting wildcards.
 Libertas: a wildcard supporting, backward private, DSSE scheme.
-Libertas+: An extension to Libertas, featuring a clean-up procedure, mitigating the storage blow-up due to updates.
 
 Reference paper: https://www.link-to-paper.nl
 
@@ -26,15 +23,14 @@ Created: 15-07-2021
 
 class CliSchemeOption(Enum):
     """Enum representing the different options for SSE schemes."""
-    LIBERTAS_PLUS = 1
-    LIBERTAS = 2
-    ZHAO_AND_NISHIDE = 3
+    LIBERTAS = 1
+    ZHAO_AND_NISHIDE = 2
 
 
 class CLI(object):
-    """An interactive command line interface to operate a SSE client-server pair. Supports Libertas, Libertas+ and
-    Zhao & Nishide. Data is never actually send over a network. Rather, both client and server are instantiated in the
-    same Python environment and share data by passing variables.
+    """An interactive command line interface to operate a SSE client-server pair. Supports Libertas and Zhao & Nishide.
+    Data is never actually send over a network. Rather, both client and server are instantiated in the same Python
+    environment and share data by passing variables.
     """
 
     def __init__(
@@ -59,7 +55,6 @@ class CLI(object):
 
         self.one = '[1]'
         self.two = '[2]'
-        self.three = '[3]'
 
     def start(
             self,
@@ -86,13 +81,12 @@ class CLI(object):
         print('------------')
         print('Pick a DSSE scheme')
         print('------------')
-        print('    {0}:    Libertas+'.format(self.one))
-        print('    {0}:    Libertas'.format(self.two))
-        print('    {0}:    Zhao & Nishide'.format(self.three))
+        print('    {0}:    Libertas'.format(self.one))
+        print('    {0}:    Zhao & Nishide'.format(self.two))
         print('    {0}  Quit the CLI'.format(self.quit))
 
-        error_string = 'Invalid command. Please use \'{0}\', \'{1}\', \'{2}\' or \'{3}\'.' \
-            .format(self.one, self.two, self.three, self.quit)
+        error_string = 'Invalid command. Please use \'{0}\', \'{1}\' or \'{2}\'.' \
+            .format(self.one, self.two, self.quit)
 
         while True:
             user_input = input('> ')
@@ -100,12 +94,9 @@ class CLI(object):
             if len(input_parts) == 1:
                 operation = input_parts[0].lower()
                 if operation == '1':
-                    self.init_libertas_plus()
-                    break
-                elif operation == '2':
                     self.init_libertas()
                     break
-                elif operation == '3':
+                elif operation == '2':
                     self.init_zhao_nishide()
                     break
                 elif operation == 'q' or operation == 'quit':
@@ -148,7 +139,7 @@ and \'*\' to indicate 0 or more characters'.format(self.search))
     def init_zhao_nishide(
             self,
     ) -> None:
-        """Initializes a Z&N client and server.
+        """Initializes a ZN client and server.
 
         :returns: None
         :rtype: None
@@ -181,26 +172,6 @@ and \'*\' to indicate 0 or more characters'.format(self.search))
         # Server setup
         sigma_server = ZNServer()
         self.server = LibertasServer(sigma_server)
-        self.server.build_index()
-
-    def init_libertas_plus(
-            self,
-    ) -> None:
-        """Initializes a Libertas+ client and server.
-
-        :returns: None
-        :rtype: None
-        """
-        self.scheme = CliSchemeOption.LIBERTAS_PLUS
-
-        # Client setup
-        sigma_client = ZNClient(.01, 10)
-        self.client = LibertasPlusClient(sigma_client)
-        self.client.setup((256, 2048))
-
-        # Server setup
-        sigma_server = ZNServer()
-        self.server = LibertasPlusServer(sigma_server)
         self.server.build_index()
 
     def parse_input(
@@ -306,17 +277,11 @@ and \'*\' to indicate 0 or more characters'.format(self.search))
 
             if self.scheme == CliSchemeOption.ZHAO_AND_NISHIDE:
                 results = self.server.search(srch_token)
-            else:
+            elif self.scheme == CliSchemeOption.LIBERTAS:
                 encrypted_results = self.server.search(srch_token)
-
-                if self.scheme == CliSchemeOption.LIBERTAS_PLUS:
-                    (results, add_tokens) = self.client.dec_search(encrypted_results)
-
-                    # Re-add document-keyword pairs
-                    for add_token in add_tokens:
-                        self.server.add(add_token)
-                else:
-                    results = self.client.dec_search(encrypted_results)
+                results = self.client.dec_search(encrypted_results)
+            else:
+                results = []
 
             if len(results) == 0:
                 print('There are no matching documents.')

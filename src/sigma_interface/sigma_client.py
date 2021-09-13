@@ -6,7 +6,7 @@ from src.utils import AddToken, SrchToken
 
 
 class SigmaClient(Generic[AddToken, SrchToken]):
-    """Client interface of a wildcard supporting SSE scheme to be used for a Libertas(+) client."""
+    """Client interface of a wildcard supporting SSE scheme to be used for a Libertas client."""
 
     def __init__(
             self,
@@ -39,8 +39,7 @@ class SigmaClient(Generic[AddToken, SrchToken]):
 
         :param q: The query, a string of characters, possibly containing wildcards
         :type q: str
-        :returns: The search token and add tokens for document-keyword pairs that have to be re-added as part of the
-        clean-up procedure.
+        :returns: The search token
         :rtype: SrchToken
         """
         pass

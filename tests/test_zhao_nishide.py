@@ -242,23 +242,5 @@ class TestSearch(unittest.TestCase):
             self.assertTrue(set(r).issubset(result))
 
 
-class TestSearchAndDelete(unittest.TestCase):
-    def setUp(self):
-        self.client = ZNClient(.01, 4)
-        self.client.setup(2048)
-        self.server = ZNServer()
-        self.server.build_index()
-
-    def test_simple_search(self):
-        add_token = self.client.add_token(1, 'test')
-        self.server.add(add_token)
-        srch_token = self.client.srch_token('test')
-        result = self.server.search_plus(srch_token)
-        srch_token2 = self.client.srch_token('test')
-        result2 = self.server.search_plus(srch_token2)
-        self.assertEqual([1], result)
-        self.assertEqual([], result2)
-
-
 if __name__ == '__main__':
     unittest.main()
