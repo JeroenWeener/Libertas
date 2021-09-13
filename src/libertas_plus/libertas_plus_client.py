@@ -1,5 +1,5 @@
 # Python imports
-from typing import Dict, List
+from typing import Dict, List, Tuple
 
 # Project imports
 from src.libertas.libertas_client import LibertasClient
@@ -17,7 +17,7 @@ class LibertasPlusClient(LibertasClient):
     def dec_search(
             self,
             r_star: List[int],
-    ) -> (List[int], List[AddToken]):
+    ) -> Tuple[List[int], List[AddToken]]:
         """Decrypts encrypted results received from the server and determines which document identifiers are still
         relevant for the query. Document identifiers are relevant when there is a keyword-document pair that is
         added, but not deleted afterwards.

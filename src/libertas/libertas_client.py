@@ -159,7 +159,7 @@ class LibertasClient(object):
         :rtype: int
         """
         update_str: str = '{0},{1},{2},{3}'.format(t, op.value, ind, w)
-        encrypted_update_str = encrypt(self.k, update_str)
+        encrypted_update_str: bytes = encrypt(self.k, update_str)
         return int.from_bytes(encrypted_update_str, byteorder='big')
 
     def _decrypt_update(
@@ -175,7 +175,7 @@ class LibertasClient(object):
         """
         # Ensure byte alignment of 16 because of CBC mode
         byte_length = math.ceil(math.log(cipher_text, 2) / 8 / 16) * 16
-        cipher_text_bytes = int.to_bytes(cipher_text, byteorder='big', length=byte_length)
-        update_str = decrypt(self.k, cipher_text_bytes)
+        cipher_text_bytes: bytes = int.to_bytes(cipher_text, byteorder='big', length=byte_length)
+        update_str: str = decrypt(self.k, cipher_text_bytes)
         (t, op, ind, w) = update_str.split(',')
         return int(t), Op(int(op)), int(ind), w

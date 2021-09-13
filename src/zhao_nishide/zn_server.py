@@ -44,14 +44,14 @@ class ZNServer(SigmaServer[Tuple[bytes, bitarray, bytes], Tuple[List[int], List[
 
     def search(
             self,
-            srch_token: (List[int], List[bytes]),
+            srch_token: Tuple[List[int], List[bytes]],
     ) -> List[int]:
         """Searches the index for a query represented by a search token and returns matching document IDs.
         The first part of a search token consists of Bloom filter positions, one per element in s_t(q). The second part
         of a search token consists of hashes of these positions.
 
         :param srch_token: The search token
-        :type srch_token: (List[int], List[bytes])
+        :type srch_token: Tuple[List[int], List[bytes]]
         :returns: A list containing the identifiers of matching documents and possibly some other documents, as the
         use of Bloom filters introduce false positives.
         :rtype: List[int]
@@ -70,7 +70,7 @@ class ZNServer(SigmaServer[Tuple[bytes, bitarray, bytes], Tuple[List[int], List[
 
     def search_plus(
             self,
-            srch_token: (List[int], List[bytes]),
+            srch_token: Tuple[List[int], List[bytes]],
     ) -> List[int]:
         """Searches the index for a query represented by a search token and returns matching document IDs.
         Additionally, as part of the clean-up procedure, delete all matching Bloom filters. The client is tasked with
@@ -79,7 +79,7 @@ class ZNServer(SigmaServer[Tuple[bytes, bitarray, bytes], Tuple[List[int], List[
         of a search token consists of hashes of these positions.
 
         :param srch_token: The search token
-        :type srch_token: (List[int], List[bytes])
+        :type srch_token: Tuple[List[int], List[bytes]]
         :returns: A list containing the identifiers of matching documents and possibly some other documents, as the
         use of Bloom filters introduce false positives.
         :rtype: List[int]
@@ -100,13 +100,13 @@ class ZNServer(SigmaServer[Tuple[bytes, bitarray, bytes], Tuple[List[int], List[
 
     def add(
             self,
-            add_token: (int, bitarray, bytes),
+            add_token: Tuple[int, bitarray, bytes],
     ) -> None:
         """Adds a document-keyword pair, represented by an add token, to the index.
         An add token consists of a document identifier, a Bloom filter and its ID.
 
         :param add_token: An add token representing a document-keyword pair
-        :type add_token: (int, bitarray, bytes)
+        :type add_token: Tuple[int, bitarray, bytes]
         :returns: None
         :rtype: None
         """

@@ -63,7 +63,7 @@ class ZNClient(SigmaClient[Tuple[bytes, bitarray, bytes], Tuple[List[int], List[
     def srch_token(
             self,
             q: str,
-    ) -> (List[int], List[bytes]):
+    ) -> Tuple[List[int], List[bytes]]:
         """Creates a search token for a query, to be send to a Z&N server.
         The first part of the search token consists of Bloom filter positions, one per element in s_t(q).
         The second part of the search token consists of hashes of these positions.
@@ -85,7 +85,7 @@ class ZNClient(SigmaClient[Tuple[bytes, bitarray, bytes], Tuple[List[int], List[
             self,
             ind: int,
             w: str,
-    ) -> (int, bitarray, bytes):
+    ) -> Tuple[int, bitarray, bytes]:
         """Creates an add token for a document-keyword pair, to be send to a Z&N server.
         Add tokens consist of the document identifier, Bloom filter and its ID.
 
@@ -94,7 +94,7 @@ class ZNClient(SigmaClient[Tuple[bytes, bitarray, bytes], Tuple[List[int], List[
         :param w: The keyword of the document-keyword pair to add
         :type w: str
         :returns: An add token, a tuple consisting of a document identifier, Bloom filter and its ID
-        :rtype: (int, bitarray, bytes)
+        :rtype: Tuple[int, bitarray, bytes]
         """
         # Append the keyword with '\0' to indicate the end of the keyword
         s_k = self._s_k(w + '\0')
