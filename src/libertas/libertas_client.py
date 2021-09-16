@@ -102,11 +102,11 @@ class LibertasClient(object):
             self,
             r_star: List[int],
     ) -> List[int]:
-        """Decrypts encrypted results received from the server and determines which document identifiers are still
+        """Decrypts encrypted updates received from the server and determines which document identifiers are still
         relevant for the query. Document identifiers are relevant when there is a keyword-document pair that is
         added, but not deleted afterwards.
 
-        :param r_star: A list of encrypted results
+        :param r_star: A list of encrypted updates
         :type r_star: List[int]
         :returns: A list of document identifiers matching with the initial query
         :rtype: List[int]
@@ -135,7 +135,6 @@ class LibertasClient(object):
 
         # Combine the ind values for all keywords and remove duplicates
         results = [ind for sub_results in keyword_documents_dict.values() for ind in sub_results]
-
         return list(set(results))
 
     def _encrypt_update(

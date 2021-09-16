@@ -1,7 +1,15 @@
 # Python imports
-from typing import Tuple, List
+from typing import List, Tuple
 
-NUMBER_OF_RUNS = 100
+"""
+Evaluation parameters
+"""
+SEED_VALUE = 314
+
+INSTANCES = 10  # Number of scheme instances. Different instances use different keys
+QUERIES = 10  # Number of queries to run for an instance of a scheme
+ITERATIONS = 1  # Number of iterations of one query on one instance of a scheme
+
 MAX_DATA_SIZE = 100000
 KEYWORD_LENGTH = 5
 ZN_FP_RATE = .01
@@ -12,7 +20,7 @@ LIBERTAS_KEY_LENGTH = 256
 def generate_data(
         data_size: int,
 ) -> List[Tuple[int, str]]:
-    """Generates at most 100,000 document-keyword pairs in the form ((0, '00000'), (1, '00001'), ..., (99999, '99999')).
+    """Generates at most 100,000 document-keyword pairs in the form [(0, '00000'), (1, '00001'), ..., (99999, '99999')].
 
     :param data_size: The number of document-keyword pairs to be generated
     :type data_size: int
