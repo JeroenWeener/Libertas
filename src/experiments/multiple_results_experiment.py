@@ -15,7 +15,7 @@ class MultipleResultsExperiment:
         random.seed(SEED_VALUE)
         start_time = time.process_time()
 
-        index_size = 100
+        index_size = 10000
 
         matching_documents_array = [1, 10, 100, 1000, 10000]
         for matching_documents in matching_documents_array:

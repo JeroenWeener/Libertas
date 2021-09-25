@@ -9,17 +9,6 @@ from src.libertas.libertas_server import LibertasServer
 from src.zhao_nishide.zn_client import ZNClient
 from src.zhao_nishide.zn_server import ZNServer
 
-"""Implementations of:
-
-Zhao & Nishide: a DSSE scheme supporting wildcards.
-Libertas: a wildcard supporting, backward private, DSSE scheme.
-
-Reference paper: https://www.link-to-paper.nl
-
-Author: Jeroen Weener
-Created: 15-07-2021
-"""
-
 
 class CliSchemeOption(Enum):
     """Enum representing the different options for SSE schemes."""
