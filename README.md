@@ -1,9 +1,9 @@
 [![Test workflow](https://github.com/JeroenWeener/Libertas/actions/workflows/python-app.yml/badge.svg?branch=main)](https://github.com/JeroenWeener/Libertas/actions/workflows/python-app.yml)
 
-# Libertas+
-This repository contains Python implementations of Libertas+, Libertas [[1]](https://www.link-to-paper.nl) and Z&N [[2]](https://link.springer.com/chapter/10.1007/978-3-319-46298-1_18).
+# Libertas
+This repository contains Python implementations of Libertas [[1]](https://www.link-to-paper.nl) and ZN [[2]](https://link.springer.com/chapter/10.1007/978-3-319-46298-1_18).
  
-Libertas(+) is a novel dynamic symmetric searchable encryption scheme in the single-user environment that is backward-private and allows for wildcard queries.
+Libertas is a novel construction for creating dynamic symmetric searchable encryption schemes in the single-user environment that are backward-private and allow for wildcard queries.
 
 ## Installation
 ```bash
@@ -16,22 +16,22 @@ python3 Libertas
 ```
 
 ## Usage
-To run Libertas(+) with a different wildcard supporting scheme, implement `SigmaClient` and `SigmaServer` (see `ZNClient` and `ZNServer` for an example). An example for Libertas is provided below.
+To run Libertas with a different wildcard supporting scheme, implement `SigmaClient` and `SigmaServer` (see `ZNClient` and `ZNServer` for an example). An example for Libertas is provided below.
 ```python
 from src.libertas.libertas_client import LibertasClient
 from src.libertas.libertas_server import LibertasServer
-from src.wildcard_scheme.wildcard_client import WildcardClient
-from src.wildcard_scheme.wildcard_server import WildcardServer
+from src.sigma_interface.sigma_client import SigmaClient
+from src.sigma_interface.sigma_server import SigmaServer
 
 
 # Initialize Libertas client
-wildcard_client = WildcardClient()
+wildcard_client = SigmaClient()
 client = LibertasClient(wildcard_client)
 security_parameter = (256, 2048)
 client.setup(security_parameter)
 
 # Initialize Libertas server
-wildcard_server = WildcardServer()
+wildcard_server = SigmaServer()
 server = LibertasServer(wildcard_server)
 server.build_index()
 

@@ -1,4 +1,5 @@
 # Python imports
+import math
 import os
 from typing import List, Tuple
 
@@ -8,7 +9,6 @@ from bitarray import bitarray
 # Project imports
 from src.crypto import hash_string_to_int, hash_int, hash_string, hash_bytes
 from src.sigma_interface.sigma_client import SigmaClient
-from src.zhao_nishide.bloom_filter_parameters import BF_HASH_FUNCTIONS, BF_ARRAY_SIZE
 
 
 class ZNClient(SigmaClient[Tuple[bytes, bitarray, bytes], Tuple[List[int], List[bytes]]]):
@@ -25,13 +25,24 @@ class ZNClient(SigmaClient[Tuple[bytes, bitarray, bytes], Tuple[List[int], List[
 
     def __init__(
             self,
+            fp_rate: float,
+            average_keyword_length: int,
     ) -> None:
         """Initializes a Zhao and Nishide client.
 
+        :param fp_rate: The false-positive rate of individual search results
+        :type fp_rate: float
+        :param average_keyword_length: The average length of keywords, used to determine optimal Bloom filter parameters
         :returns: None
         :rtype: None
         """
         super().__init__()
+
+        # Estimate optimal Bloom filter parameters
+        set_size = len(self._s_k('0' * average_keyword_length))
+        self.bf_size = math.ceil(-(set_size * math.log(fp_rate)) / (math.log(2) ** 2))
+        self.bf_hash_functions = math.ceil((self.bf_size / set_size) * math.log(2))
+
         self.k = None
 
     def setup(
@@ -45,14 +56,14 @@ class ZNClient(SigmaClient[Tuple[bytes, bitarray, bytes], Tuple[List[int], List[
         :returns: None
         :rtype: None
         """
-        k_h: List[bytes] = [os.urandom(security_parameter // 8) for _ in range(BF_HASH_FUNCTIONS)]
+        k_h: List[bytes] = [os.urandom(security_parameter // 8) for _ in range(self.bf_hash_functions)]
         k_g: bytes = os.urandom(security_parameter // 8)
         self.k: (bytes, bytes) = (k_h, k_g)
 
     def srch_token(
             self,
             q: str,
-    ) -> (List[int], List[bytes]):
+    ) -> Tuple[List[int], List[bytes]]:
         """Creates a search token for a query, to be send to a Z&N server.
         The first part of the search token consists of Bloom filter positions, one per element in s_t(q).
         The second part of the search token consists of hashes of these positions.
@@ -66,39 +77,39 @@ class ZNClient(SigmaClient[Tuple[bytes, bitarray, bytes], Tuple[List[int], List[
         # Append the query with '\0' to indicate the end of the query. This way 'test' is interpreted differently from
         # 'test*'.
         s_t = self._s_t(q + '\0')
-        td1s: List[int] = [hash_string_to_int(k, e) % BF_ARRAY_SIZE for e in s_t for k in k_h]
+        td1s: List[int] = [hash_string_to_int(k, e) % self.bf_size for e in s_t for k in k_h]
         td2s: List[bytes] = [hash_int(k_g, pos) for pos in td1s]
         return td1s, td2s
 
     def add_token(
             self,
-            ind: bytes,
+            ind: int,
             w: str,
-    ) -> (bytes, bitarray, bytes):
+    ) -> Tuple[int, bitarray, bytes]:
         """Creates an add token for a document-keyword pair, to be send to a Z&N server.
         Add tokens consist of the document identifier, Bloom filter and its ID.
 
         :param ind: The document identifier of the document-keyword pair to add
-        :type ind: bytes
+        :type ind: int
         :param w: The keyword of the document-keyword pair to add
         :type w: str
         :returns: An add token, a tuple consisting of a document identifier, Bloom filter and its ID
-        :rtype: (bytes, bitarray, bytes)
+        :rtype: Tuple[int, bitarray, bytes]
         """
         # Append the keyword with '\0' to indicate the end of the keyword
         s_k = self._s_k(w + '\0')
         (k_h, k_g) = self.k
         b_id = hash_string(k_g, str(ind) + w)
-        bloom_filter = bitarray(BF_ARRAY_SIZE)
+        bloom_filter = bitarray(self.bf_size)
 
         # Fill Bloom filter
         for e in s_k:
             for k in k_h:
-                pos = hash_string_to_int(k, e) % BF_ARRAY_SIZE
+                pos = hash_string_to_int(k, e) % self.bf_size
                 bloom_filter[pos] = True
 
         # Mask Bloom filter
-        for pos in range(BF_ARRAY_SIZE):
+        for pos in range(self.bf_size):
             h = hash_bytes(b_id, hash_int(k_g, pos))
             first_hash_bit = h[0] & 1
             bloom_filter[pos] ^= first_hash_bit
@@ -106,14 +117,14 @@ class ZNClient(SigmaClient[Tuple[bytes, bitarray, bytes], Tuple[List[int], List[
 
     def del_token(
             self,
-            ind: bytes,
+            ind: int,
             w: str,
     ) -> bytes:
         """Creates a delete token for a document-keyword pair, to be send to a Z&N server.
         A delete token is a Bloom filter ID.
 
         :param ind: The document identifier of the document-keyword pair to delete
-        :type ind: bytes
+        :type ind: int
         :param w: The keyword of the document-keyword pair to delete
         :type w: str
         :returns: A delete token, which is a Bloom filter ID

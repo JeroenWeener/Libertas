@@ -1,11 +1,12 @@
 # Python imports
+import math
 import os
 from typing import Dict, List
 
 # Project imports
 from src.crypto import decrypt, encrypt
 from src.sigma_interface.sigma_client import SigmaClient
-from src.utils import EncryptedUpdate, Update, Op, AddToken, SrchToken
+from src.utils import Update, Op, AddToken, SrchToken
 from src.zhao_nishide.zn_client import ZNClient
 
 
@@ -99,14 +100,14 @@ class LibertasClient(object):
 
     def dec_search(
             self,
-            r_star: List[EncryptedUpdate],
-    ) -> (List[int], List[AddToken]):
-        """Decrypts encrypted results received from the server and determines which document identifiers are still
+            r_star: List[int],
+    ) -> List[int]:
+        """Decrypts encrypted updates received from the server and determines which document identifiers are still
         relevant for the query. Document identifiers are relevant when there is a keyword-document pair that is
         added, but not deleted afterwards.
 
-        :param r_star: A list of encrypted results
-        :type r_star: List[bytes]
+        :param r_star: A list of encrypted updates
+        :type r_star: List[int]
         :returns: A list of document identifiers matching with the initial query
         :rtype: List[int]
         """
@@ -134,7 +135,6 @@ class LibertasClient(object):
 
         # Combine the ind values for all keywords and remove duplicates
         results = [ind for sub_results in keyword_documents_dict.values() for ind in sub_results]
-
         return list(set(results))
 
     def _encrypt_update(
@@ -143,7 +143,7 @@ class LibertasClient(object):
             op: Op,
             ind: int,
             w: str,
-    ) -> EncryptedUpdate:
+    ) -> int:
         """Encrypts a (t, op, ind, w) tuple.
 
         :param t: The timestamp in the tuple
@@ -155,22 +155,26 @@ class LibertasClient(object):
         :param w: The keyword in the tuple
         :type w: str
         :returns: The tuple in encrypted form
-        :rtype: EncryptedUpdate
+        :rtype: int
         """
         update_str: str = '{0},{1},{2},{3}'.format(t, op.value, ind, w)
-        return encrypt(self.k, update_str)
+        encrypted_update_str: bytes = encrypt(self.k, update_str)
+        return int.from_bytes(encrypted_update_str, byteorder='big')
 
     def _decrypt_update(
             self,
-            cipher_text: EncryptedUpdate,
+            cipher_text: int,
     ) -> Update:
         """Decrypts the encryption of a (t, op, ind, w) tuple.
 
         :param cipher_text: The encrypted tuple
-        :type cipher_text: EncryptedUpdate
+        :type cipher_text: int
         :returns: The (t, op, ind, w) tuple
         :rtype: Update
         """
-        update_str = decrypt(self.k, cipher_text)
+        # Ensure byte alignment of 16 because of CBC mode
+        byte_length = math.ceil(math.log(cipher_text, 2) / 8 / 16) * 16
+        cipher_text_bytes: bytes = int.to_bytes(cipher_text, byteorder='big', length=byte_length)
+        update_str: str = decrypt(self.k, cipher_text_bytes)
         (t, op, ind, w) = update_str.split(',')
         return int(t), Op(int(op)), int(ind), w

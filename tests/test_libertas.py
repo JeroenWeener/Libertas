@@ -13,7 +13,7 @@ class TestSetup(unittest.TestCase):
     def test_setup(self):
         security_parameter = (256, 2048)
 
-        zn_client = ZNClient()
+        zn_client = ZNClient(.01, 6)
         client = LibertasClient(zn_client)
         client.setup(security_parameter)
 
@@ -23,7 +23,7 @@ class TestSetup(unittest.TestCase):
 
 class TestEncryptUpdates(unittest.TestCase):
     def setUp(self):
-        zn_client = ZNClient()
+        zn_client = ZNClient(.01, 3)
         zn_server = ZNServer()
         self.client = LibertasClient(zn_client)
         self.server = LibertasServer(zn_server)
@@ -40,7 +40,7 @@ class TestEncryptUpdates(unittest.TestCase):
 
 class TestUniquenessOfTokens(unittest.TestCase):
     def setUp(self):
-        zn_client = ZNClient()
+        zn_client = ZNClient(.01, 4)
         self.client = LibertasClient(zn_client)
         self.client.setup((256, 2048))
 
@@ -57,7 +57,7 @@ class TestUniquenessOfTokens(unittest.TestCase):
 
 class TestAdd(unittest.TestCase):
     def setUp(self):
-        zn_client = ZNClient()
+        zn_client = ZNClient(.01, 6)
         zn_server = ZNServer()
         self.client = LibertasClient(zn_client)
         self.server = LibertasServer(zn_server)
@@ -88,7 +88,7 @@ class TestAdd(unittest.TestCase):
 
 class TestDelete(unittest.TestCase):
     def setUp(self):
-        zn_client = ZNClient()
+        zn_client = ZNClient(.01, 6)
         zn_server = ZNServer()
         self.client = LibertasClient(zn_client)
         self.server = LibertasServer(zn_server)
@@ -134,7 +134,7 @@ class TestDelete(unittest.TestCase):
 
 class TestSearch(unittest.TestCase):
     def setUp(self):
-        zn_client = ZNClient()
+        zn_client = ZNClient(.01, 12)
         zn_server = ZNServer()
         self.client = LibertasClient(zn_client)
         self.server = LibertasServer(zn_server)

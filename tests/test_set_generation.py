@@ -7,7 +7,7 @@ from src.zhao_nishide.zn_client import ZNClient
 
 class TestSKo(unittest.TestCase):
     def setUp(self):
-        self.client = ZNClient()
+        self.client = ZNClient(.01, 7)
 
     def test_simple_keyword(self):
         result = self.client._s_k_o('keyword')
@@ -44,7 +44,7 @@ class TestSKo(unittest.TestCase):
 
 class TestSKp1(unittest.TestCase):
     def setUp(self):
-        self.client = ZNClient()
+        self.client = ZNClient(.01, 7)
 
     def test_simple_keyword(self):
         result = self.client._s_k_p1('keyword')
@@ -105,7 +105,7 @@ class TestSKp1(unittest.TestCase):
 
 class TestSKp2(unittest.TestCase):
     def setUp(self):
-        self.client = ZNClient()
+        self.client = ZNClient(.01, 7)
 
     def test_simple_keyword(self):
         result = self.client._s_k_p2('keyword')
@@ -166,7 +166,7 @@ class TestSKp2(unittest.TestCase):
 
 class TestSTo(unittest.TestCase):
     def setUp(self):
-        self.client = ZNClient()
+        self.client = ZNClient(.01, 7)
 
     def test_simple_query(self):
         result = self.client._s_t_o('keyword')
@@ -254,7 +254,7 @@ class TestSTo(unittest.TestCase):
 class TestSTp1(unittest.TestCase):
 
     def setUp(self):
-        self.client = ZNClient()
+        self.client = ZNClient(.01, 7)
 
     def test_simple_keyword(self):
         result = self.client._s_t_p1('keyword')
@@ -397,7 +397,7 @@ class TestSTp1(unittest.TestCase):
 
 class TestSTp2(unittest.TestCase):
     def setUp(self):
-        self.client = ZNClient()
+        self.client = ZNClient(.01, 7)
 
     def test_simple_keyword(self):
         result = self.client._s_t_p2('keyword')
