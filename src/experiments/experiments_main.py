@@ -5,7 +5,7 @@ from experiments.multiple_results_experiment import MultipleResultsExperiment
 from experiments.wildcard_query_search_experiment import WildcardQuerySearchExperiment
 
 if __name__ == '__main__':
-    # ExactKeywordSearchExperiment()
-    # WildcardQuerySearchExperiment()
-    # DeletionExperiment()
+    ExactKeywordSearchExperiment()
+    WildcardQuerySearchExperiment()
+    DeletionExperiment()
     MultipleResultsExperiment()
